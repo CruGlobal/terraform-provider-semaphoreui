@@ -1,0 +1,69 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the provider
+    cmds:
+      - go build -v ./...
+
+  install:
+    desc: Install the provider in $GOBIN
+    deps:
+      - build
+    cmds:
+      - go install -v ./...
+
+  fmt:
+    desc: Format the code with gofmt
+    cmds:
+      - gofmt -s -w -e .
+
+  lint:
+    desc: Run the linter
+    cmds:
+      - golangci-lint run
+
+  generate:
+    desc: Generate documentation
+    dir: tools
+    cmds:
+      - go generate ./...
+
+  client:
+    desc: Generate the SemaphoreUI API client code
+    cmds:
+      - swagger generate client -f /Users/brianzoetewey/src/go/semaphore/api-docs.yml -t semaphoreui -A SemaphoreUI --default-scheme=https
+      # swagger generate client -f https://github.com/semaphoreui/semaphore/blob/v2.10.35/api-docs.yml -t semaphoreui -A SemaphoreUI --default-scheme=https
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test -v -cover -timeout=120s -parallel=10 ./internal/...
+
+  docker-start:
+    desc: Start SemaphoreUI in docker, used for acceptance tests, or local development
+    cmds:
+      - docker compose -f docker-compose.yml up -d
+
+  docker-stop:
+    desc: Stop the SemaphoreUI docker container (all data is lost)
+    cmds:
+      - docker compose -f docker-compose.yml down -v
+
+  testacc:
+    desc: Run acceptance tests using docker
+    vars:
+      api_token:
+        sh: head -c32 /dev/urandom | base64
+    env:
+      SEMAPHOREUI_HOSTNAME: localhost
+      SEMAPHOREUI_PORT: 13000
+      SEMAPHOREUI_PROTOCOL: http
+      SEMAPHOREUI_API_TOKEN: "{{.api_token}}"
+      TF_ACC: 1
+    cmds:
+      - task: docker-start
+      - defer: task docker-stop
+      - scripts/wait_for_test_env_ready.sh
+      - scripts/setup_test_env.sh
+      - go test -v -cover -timeout 120m ./internal/...

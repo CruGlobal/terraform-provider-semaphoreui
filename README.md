@@ -7,7 +7,7 @@
   </picture>
 </a>
 
-# Terraform Semaphore Provider
+# Terraform SemaphoreUI Provider
 
 The [SemaphoreUI Provider](https://registry.terraform.io/providers/CruGlobal/semaphoreui/latest/docs) enables [Terraform](https://terraform.io) to manage [SemaphoreUI](https://semaphoreui.com/) resources.
 

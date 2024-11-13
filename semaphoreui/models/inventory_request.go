@@ -24,6 +24,9 @@ type InventoryRequest struct {
 	// Minimum: 1
 	BecomeKeyID int64 `json:"become_key_id,omitempty"`
 
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// inventory
 	Inventory string `json:"inventory,omitempty"`
 

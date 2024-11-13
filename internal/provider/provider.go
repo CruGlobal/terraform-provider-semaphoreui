@@ -216,6 +216,7 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 func (p *SemaphoreUIProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewProjectKeyResource,
+		NewProjectRepositoryResource,
 		NewProjectResource,
 		NewProjectUserResource,
 		NewUserResource,

@@ -6,10 +6,14 @@ package project
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
+
+	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
 // PostProjectProjectIDKeysReader is a Reader for the PostProjectProjectIDKeys structure.
@@ -20,8 +24,8 @@ type PostProjectProjectIDKeysReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PostProjectProjectIDKeysReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-	case 204:
-		result := NewPostProjectProjectIDKeysNoContent()
+	case 201:
+		result := NewPostProjectProjectIDKeysCreated()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -37,58 +41,72 @@ func (o *PostProjectProjectIDKeysReader) ReadResponse(response runtime.ClientRes
 	}
 }
 
-// NewPostProjectProjectIDKeysNoContent creates a PostProjectProjectIDKeysNoContent with default headers values
-func NewPostProjectProjectIDKeysNoContent() *PostProjectProjectIDKeysNoContent {
-	return &PostProjectProjectIDKeysNoContent{}
+// NewPostProjectProjectIDKeysCreated creates a PostProjectProjectIDKeysCreated with default headers values
+func NewPostProjectProjectIDKeysCreated() *PostProjectProjectIDKeysCreated {
+	return &PostProjectProjectIDKeysCreated{}
 }
 
 /*
-PostProjectProjectIDKeysNoContent describes a response with status code 204, with default header values.
+PostProjectProjectIDKeysCreated describes a response with status code 201, with default header values.
 
 Access Key created
 */
-type PostProjectProjectIDKeysNoContent struct {
+type PostProjectProjectIDKeysCreated struct {
+	Payload *models.AccessKey
 }
 
-// IsSuccess returns true when this post project project Id keys no content response has a 2xx status code
-func (o *PostProjectProjectIDKeysNoContent) IsSuccess() bool {
+// IsSuccess returns true when this post project project Id keys created response has a 2xx status code
+func (o *PostProjectProjectIDKeysCreated) IsSuccess() bool {
 	return true
 }
 
-// IsRedirect returns true when this post project project Id keys no content response has a 3xx status code
-func (o *PostProjectProjectIDKeysNoContent) IsRedirect() bool {
+// IsRedirect returns true when this post project project Id keys created response has a 3xx status code
+func (o *PostProjectProjectIDKeysCreated) IsRedirect() bool {
 	return false
 }
 
-// IsClientError returns true when this post project project Id keys no content response has a 4xx status code
-func (o *PostProjectProjectIDKeysNoContent) IsClientError() bool {
+// IsClientError returns true when this post project project Id keys created response has a 4xx status code
+func (o *PostProjectProjectIDKeysCreated) IsClientError() bool {
 	return false
 }
 
-// IsServerError returns true when this post project project Id keys no content response has a 5xx status code
-func (o *PostProjectProjectIDKeysNoContent) IsServerError() bool {
+// IsServerError returns true when this post project project Id keys created response has a 5xx status code
+func (o *PostProjectProjectIDKeysCreated) IsServerError() bool {
 	return false
 }
 
-// IsCode returns true when this post project project Id keys no content response a status code equal to that given
-func (o *PostProjectProjectIDKeysNoContent) IsCode(code int) bool {
-	return code == 204
+// IsCode returns true when this post project project Id keys created response a status code equal to that given
+func (o *PostProjectProjectIDKeysCreated) IsCode(code int) bool {
+	return code == 201
 }
 
-// Code gets the status code for the post project project Id keys no content response
-func (o *PostProjectProjectIDKeysNoContent) Code() int {
-	return 204
+// Code gets the status code for the post project project Id keys created response
+func (o *PostProjectProjectIDKeysCreated) Code() int {
+	return 201
 }
 
-func (o *PostProjectProjectIDKeysNoContent) Error() string {
-	return fmt.Sprintf("[POST /project/{project_id}/keys][%d] postProjectProjectIdKeysNoContent", 204)
+func (o *PostProjectProjectIDKeysCreated) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/keys][%d] postProjectProjectIdKeysCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDKeysNoContent) String() string {
-	return fmt.Sprintf("[POST /project/{project_id}/keys][%d] postProjectProjectIdKeysNoContent", 204)
+func (o *PostProjectProjectIDKeysCreated) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/keys][%d] postProjectProjectIdKeysCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDKeysNoContent) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *PostProjectProjectIDKeysCreated) GetPayload() *models.AccessKey {
+	return o.Payload
+}
+
+func (o *PostProjectProjectIDKeysCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.AccessKey)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

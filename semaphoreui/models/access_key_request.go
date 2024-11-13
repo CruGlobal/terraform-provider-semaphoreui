@@ -20,12 +20,18 @@ import (
 // swagger:model AccessKeyRequest
 type AccessKeyRequest struct {
 
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// login password
 	LoginPassword *AccessKeyRequestLoginPassword `json:"login_password,omitempty"`
 
 	// name
 	// Example: None
 	Name string `json:"name,omitempty"`
+
+	// override secret
+	OverrideSecret bool `json:"override_secret,omitempty"`
 
 	// project id
 	// Minimum: 1
@@ -288,6 +294,10 @@ type AccessKeyRequestSSH struct {
 	// login
 	// Example: user
 	Login string `json:"login,omitempty"`
+
+	// passphrase
+	// Example: passphrase
+	Passphrase string `json:"passphrase,omitempty"`
 
 	// private key
 	// Example: private key

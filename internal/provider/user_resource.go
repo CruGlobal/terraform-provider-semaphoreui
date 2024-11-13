@@ -69,7 +69,7 @@ type userModel struct {
 func (r *userResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `
-Provides a Semaphoreui User resource.`,
+Provides a SemaphoreUI User resource.`,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
 				MarkdownDescription: "User ID.",
@@ -183,7 +183,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 	response, err := r.client.User.PostUsers(&user.PostUsersParams{User: payload}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Semaphoreui User",
+			"Error Creating SemaphoreUI User",
 			"Could not create user, unexpected error: "+err.Error(),
 		)
 		return
@@ -305,7 +305,6 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		)
 		return
 	}
-
 }
 
 func (r *userResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -18,11 +18,11 @@ func testAccProjectExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		id, err := strconv.ParseInt(rs.Primary.ID, 10, 64)
+		id, err := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,26 @@ func testAccProjectExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func TestAcc_ProjectResource(t *testing.T) {
+func testAccProjectConfig(projectNameSuffix string, projectExtras string) string {
+	return fmt.Sprintf(`
+resource "semaphoreui_project" "test" {
+  name = "test-%[1]s"
+  %[2]s
+}`, projectNameSuffix, projectExtras)
+}
+
+func testAccProjectImportID(n string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", n)
+		}
+
+		return fmt.Sprintf("project/%s", rs.Primary.Attributes["id"]), nil
+	}
+}
+
+func TestAcc_ProjectResource_basic(t *testing.T) {
 	projectNameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -58,7 +77,7 @@ max_parallel_tasks = 0`),
 				ImportStateVerify: true,
 				// API returns different timestamp format between create and read, so just ignore it
 				ImportStateVerifyIgnore: []string{"created"},
-				ImportStateIdFunc:       getProjectImportID("semaphoreui_project.test"),
+				ImportStateIdFunc:       testAccProjectImportID("semaphoreui_project.test"),
 			},
 			// Update and Read testing
 			{
@@ -72,26 +91,6 @@ alert_chat = "testing"`),
 					resource.TestCheckResourceAttr("semaphoreui_project.test", "max_parallel_tasks", "2"),
 				),
 			},
-			// Delete testing automatically occurs in TestCase
 		},
 	})
-}
-
-func getProjectImportID(n string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", n)
-		}
-
-		return fmt.Sprintf("project/%s", rs.Primary.Attributes["id"]), nil
-	}
-}
-
-func testAccProjectConfig(projectNameSuffix string, projectExtras string) string {
-	return fmt.Sprintf(`
-resource "semaphoreui_project" "test" {
-  name = "test-%[1]s"
-  %[2]s
-}`, projectNameSuffix, projectExtras)
 }

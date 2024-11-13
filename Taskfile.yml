@@ -40,12 +40,12 @@ tasks:
     cmds:
       - go test -v -cover -timeout=120s -parallel=10 ./internal/...
 
-  docker-start:
+  "docker:start":
     desc: Start SemaphoreUI in docker, used for acceptance tests, or local development
     cmds:
       - docker compose -f docker-compose.yml up -d
 
-  docker-stop:
+  "docker:stop":
     desc: Stop the SemaphoreUI docker container (all data is lost)
     cmds:
       - docker compose -f docker-compose.yml down -v
@@ -62,8 +62,8 @@ tasks:
       SEMAPHOREUI_API_TOKEN: "{{.api_token}}"
       TF_ACC: 1
     cmds:
-      - task: docker-start
-      - defer: task docker-stop
+      - task: docker:start
+      - defer: task docker:stop
       - scripts/wait_for_test_env_ready.sh
       - scripts/setup_test_env.sh
       - go test -v -cover -timeout 120m ./internal/...

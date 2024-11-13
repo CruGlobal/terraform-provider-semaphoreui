@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -23,6 +24,9 @@ type EnvironmentRequest struct {
 	// Example: {}
 	Env string `json:"env,omitempty"`
 
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// json
 	// Example: {}
 	JSON string `json:"json,omitempty"`
@@ -37,6 +41,9 @@ type EnvironmentRequest struct {
 	// project id
 	// Minimum: 1
 	ProjectID int64 `json:"project_id,omitempty"`
+
+	// secrets
+	Secrets []*EnvironmentSecretRequest `json:"secrets"`
 }
 
 // Validate validates this environment request
@@ -44,6 +51,10 @@ func (m *EnvironmentRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateProjectID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSecrets(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -65,8 +76,68 @@ func (m *EnvironmentRequest) validateProjectID(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this environment request based on context it is used
+func (m *EnvironmentRequest) validateSecrets(formats strfmt.Registry) error {
+	if swag.IsZero(m.Secrets) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Secrets); i++ {
+		if swag.IsZero(m.Secrets[i]) { // not required
+			continue
+		}
+
+		if m.Secrets[i] != nil {
+			if err := m.Secrets[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("secrets" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("secrets" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this environment request based on the context it is used
 func (m *EnvironmentRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateSecrets(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *EnvironmentRequest) contextValidateSecrets(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Secrets); i++ {
+
+		if m.Secrets[i] != nil {
+
+			if swag.IsZero(m.Secrets[i]) { // not required
+				return nil
+			}
+
+			if err := m.Secrets[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("secrets" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("secrets" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

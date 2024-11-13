@@ -25,6 +25,9 @@ type RepositoryRequest struct {
 	// Example: git@example.com
 	GitURL string `json:"git_url,omitempty"`
 
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// name
 	// Example: Test
 	Name string `json:"name,omitempty"`

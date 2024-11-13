@@ -9,6 +9,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func testAccProjectUserConfig(nameSuffix string, role string) string {
+	return fmt.Sprintf(`
+resource "semaphoreui_project" "test" {
+  name = "test-%[1]s"
+}
+
+resource "semaphoreui_user" "test" {
+  username = "test"
+  name = "test-%[1]s"
+  email = "test@example.com"
+}
+
+resource "semaphoreui_project_user" "test_test" {
+  project_id = semaphoreui_project.test.id
+  user_id = semaphoreui_user.test.id
+  role = "%[2]s"
+}`, nameSuffix, role)
+}
+
+func testAccProjectUserImportID(n string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", n)
+		}
+
+		return fmt.Sprintf("project/%s/user/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["user_id"]), nil
+	}
+}
+
 func TestAcc_ProjectUserResource(t *testing.T) {
 	nameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
@@ -31,8 +61,8 @@ func TestAcc_ProjectUserResource(t *testing.T) {
 				ResourceName:      "semaphoreui_project_user.test_test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateIdFunc: getProjectUserImportID("semaphoreui_project_user.test_test"),
-				// Previous terraform provider SDKs required an ID attribute field, the provider framework does not
+				ImportStateIdFunc: testAccProjectUserImportID("semaphoreui_project_user.test_test"),
+				// Previous terraform provider SDKs required an ID attribute field, the provider framework does not.
 				// We use a combination of a project_id and user_id to uniquely identify a project user,
 				// but testing framework requires a single field. We picked "user_id", but testing will verify both ids
 				ImportStateVerifyIdentifierAttribute: "user_id",
@@ -48,39 +78,6 @@ func TestAcc_ProjectUserResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("semaphoreui_project_user.test_test", "user_id"),
 				),
 			},
-			// Delete testing automatically occurs in TestCase
 		},
 	})
-}
-
-func getProjectUserImportID(n string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", n)
-		}
-
-		return fmt.Sprintf("project/%s/user/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["user_id"]), nil
-	}
-}
-
-func testAccProjectUserConfig(nameSuffix string, role string) string {
-	return fmt.Sprintf(`
-resource "semaphoreui_project" "test" {
-  name = "test-%[1]s"
-  alert = false
-  max_parallel_tasks = 0
-}
-
-resource "semaphoreui_user" "test" {
-  username = "test"
-  name = "test-%[1]s"
-  email = "test@example.com"
-}
-
-resource "semaphoreui_project_user" "test_test" {
-  project_id = semaphoreui_project.test.id
-  user_id = semaphoreui_user.test.id
-  role = "%[2]s"
-}`, nameSuffix, role)
 }

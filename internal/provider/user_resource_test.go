@@ -18,22 +18,42 @@ func testAccUserExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		id, err := strconv.ParseInt(rs.Primary.ID, 10, 64)
+		id, err := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		if err != nil {
 			return err
 		}
 
 		_, err = testClient().User.GetUsersUserID(&user.GetUsersUserIDParams{UserID: id}, nil)
-
 		return err
 	}
 }
 
-func TestAcc_UserResource(t *testing.T) {
+func testAccUserConfig(userNameSuffix string, userExtras string) string {
+	return fmt.Sprintf(`
+resource "semaphoreui_user" "test" {
+  username = "test-%[1]s"
+  name     = "Test User"
+  email    = "test@example.com"
+  %[2]s
+}`, userNameSuffix, userExtras)
+}
+
+func testAccUserImportID(n string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", n)
+		}
+
+		return fmt.Sprintf("user/%s", rs.Primary.Attributes["id"]), nil
+	}
+}
+
+func TestAcc_UserResource_basic(t *testing.T) {
 	userNameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -58,11 +78,15 @@ password = "password!"`),
 			},
 			// ImportState testing
 			{
-				ResourceName:            "semaphoreui_user.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
+				ResourceName:      "semaphoreui_user.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccUserImportID("semaphoreui_user.test"),
+				// Password is encrypted and not returned by the API on import
 				ImportStateVerifyIgnore: []string{"password"},
-				ImportStateIdFunc:       getUserImportID("semaphoreui_user.test"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("semaphoreui_user.test", "password", ""),
+				),
 			},
 			// Update and Read testing
 			{
@@ -78,28 +102,6 @@ password = "something"`),
 					resource.TestCheckResourceAttr("semaphoreui_user.test", "external", "false"),
 				),
 			},
-			// Delete testing automatically occurs in TestCase
 		},
 	})
-}
-
-func getUserImportID(n string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", n)
-		}
-
-		return fmt.Sprintf("user/%s", rs.Primary.Attributes["id"]), nil
-	}
-}
-
-func testAccUserConfig(userNameSuffix string, userExtras string) string {
-	return fmt.Sprintf(`
-resource "semaphoreui_user" "test" {
-  username = "test-%[1]s"
-  name     = "Test User"
-  email    = "test@example.com"
-  %[2]s
-}`, userNameSuffix, userExtras)
 }

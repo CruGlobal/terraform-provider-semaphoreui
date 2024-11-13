@@ -35,6 +35,10 @@ type InventoryRequest struct {
 	// Minimum: 1
 	ProjectID int64 `json:"project_id,omitempty"`
 
+	// repository id
+	// Minimum: 1
+	RepositoryID int64 `json:"repository_id,omitempty"`
+
 	// ssh key id
 	// Minimum: 1
 	SSHKeyID int64 `json:"ssh_key_id,omitempty"`
@@ -53,6 +57,10 @@ func (m *InventoryRequest) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateProjectID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateRepositoryID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -88,6 +96,18 @@ func (m *InventoryRequest) validateProjectID(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinimumInt("project_id", "body", m.ProjectID, 1, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *InventoryRequest) validateRepositoryID(formats strfmt.Registry) error {
+	if swag.IsZero(m.RepositoryID) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("repository_id", "body", m.RepositoryID, 1, false); err != nil {
 		return err
 	}
 

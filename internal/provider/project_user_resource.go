@@ -59,7 +59,7 @@ type projectUserModel struct {
 func (r *projectUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `
-Provides a Semaphoreui Project User resource.
+Provides a SemaphoreUI Project User resource.
 
 This resource is used to manages a user's role in a project.`,
 		Attributes: map[string]schema.Attribute{
@@ -130,7 +130,7 @@ func (r *projectUserResource) Create(ctx context.Context, req resource.CreateReq
 		}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Semaphoreui Project User",
+			"Error Creating SemaphoreUI Project User",
 			"Could not create project user, unexpected error: "+err.Error(),
 		)
 		return

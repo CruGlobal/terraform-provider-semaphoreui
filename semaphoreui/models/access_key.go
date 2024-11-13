@@ -23,18 +23,12 @@ type AccessKey struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
-	// login password
-	LoginPassword *AccessKeyLoginPassword `json:"login_password,omitempty"`
-
 	// name
 	// Example: Test
 	Name string `json:"name,omitempty"`
 
 	// project id
 	ProjectID int64 `json:"project_id,omitempty"`
-
-	// ssh
-	SSH *AccessKeySSH `json:"ssh,omitempty"`
 
 	// type
 	// Enum: ["none","ssh","login_password"]
@@ -45,14 +39,6 @@ type AccessKey struct {
 func (m *AccessKey) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateLoginPassword(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSSH(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateType(formats); err != nil {
 		res = append(res, err)
 	}
@@ -60,44 +46,6 @@ func (m *AccessKey) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *AccessKey) validateLoginPassword(formats strfmt.Registry) error {
-	if swag.IsZero(m.LoginPassword) { // not required
-		return nil
-	}
-
-	if m.LoginPassword != nil {
-		if err := m.LoginPassword.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("login_password")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("login_password")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *AccessKey) validateSSH(formats strfmt.Registry) error {
-	if swag.IsZero(m.SSH) { // not required
-		return nil
-	}
-
-	if m.SSH != nil {
-		if err := m.SSH.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("ssh")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("ssh")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -146,63 +94,8 @@ func (m *AccessKey) validateType(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this access key based on the context it is used
+// ContextValidate validates this access key based on context it is used
 func (m *AccessKey) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateLoginPassword(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.contextValidateSSH(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *AccessKey) contextValidateLoginPassword(ctx context.Context, formats strfmt.Registry) error {
-
-	if m.LoginPassword != nil {
-
-		if swag.IsZero(m.LoginPassword) { // not required
-			return nil
-		}
-
-		if err := m.LoginPassword.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("login_password")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("login_password")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *AccessKey) contextValidateSSH(ctx context.Context, formats strfmt.Registry) error {
-
-	if m.SSH != nil {
-
-		if swag.IsZero(m.SSH) { // not required
-			return nil
-		}
-
-		if err := m.SSH.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("ssh")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("ssh")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -217,90 +110,6 @@ func (m *AccessKey) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *AccessKey) UnmarshalBinary(b []byte) error {
 	var res AccessKey
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// AccessKeyLoginPassword access key login password
-//
-// swagger:model AccessKeyLoginPassword
-type AccessKeyLoginPassword struct {
-
-	// login
-	// Example: username
-	Login string `json:"login,omitempty"`
-
-	// password
-	// Example: password
-	Password string `json:"password,omitempty"`
-}
-
-// Validate validates this access key login password
-func (m *AccessKeyLoginPassword) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this access key login password based on context it is used
-func (m *AccessKeyLoginPassword) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *AccessKeyLoginPassword) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *AccessKeyLoginPassword) UnmarshalBinary(b []byte) error {
-	var res AccessKeyLoginPassword
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// AccessKeySSH access key SSH
-//
-// swagger:model AccessKeySSH
-type AccessKeySSH struct {
-
-	// login
-	// Example: user
-	Login string `json:"login,omitempty"`
-
-	// private key
-	// Example: private key
-	PrivateKey string `json:"private_key,omitempty"`
-}
-
-// Validate validates this access key SSH
-func (m *AccessKeySSH) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this access key SSH based on context it is used
-func (m *AccessKeySSH) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *AccessKeySSH) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *AccessKeySSH) UnmarshalBinary(b []byte) error {
-	var res AccessKeySSH
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

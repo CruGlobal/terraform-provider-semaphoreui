@@ -6,10 +6,14 @@ package project
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
+
+	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
 // PostProjectProjectIDEnvironmentReader is a Reader for the PostProjectProjectIDEnvironment structure.
@@ -20,8 +24,8 @@ type PostProjectProjectIDEnvironmentReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PostProjectProjectIDEnvironmentReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-	case 204:
-		result := NewPostProjectProjectIDEnvironmentNoContent()
+	case 201:
+		result := NewPostProjectProjectIDEnvironmentCreated()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -31,58 +35,72 @@ func (o *PostProjectProjectIDEnvironmentReader) ReadResponse(response runtime.Cl
 	}
 }
 
-// NewPostProjectProjectIDEnvironmentNoContent creates a PostProjectProjectIDEnvironmentNoContent with default headers values
-func NewPostProjectProjectIDEnvironmentNoContent() *PostProjectProjectIDEnvironmentNoContent {
-	return &PostProjectProjectIDEnvironmentNoContent{}
+// NewPostProjectProjectIDEnvironmentCreated creates a PostProjectProjectIDEnvironmentCreated with default headers values
+func NewPostProjectProjectIDEnvironmentCreated() *PostProjectProjectIDEnvironmentCreated {
+	return &PostProjectProjectIDEnvironmentCreated{}
 }
 
 /*
-PostProjectProjectIDEnvironmentNoContent describes a response with status code 204, with default header values.
+PostProjectProjectIDEnvironmentCreated describes a response with status code 201, with default header values.
 
 Environment created
 */
-type PostProjectProjectIDEnvironmentNoContent struct {
+type PostProjectProjectIDEnvironmentCreated struct {
+	Payload *models.Environment
 }
 
-// IsSuccess returns true when this post project project Id environment no content response has a 2xx status code
-func (o *PostProjectProjectIDEnvironmentNoContent) IsSuccess() bool {
+// IsSuccess returns true when this post project project Id environment created response has a 2xx status code
+func (o *PostProjectProjectIDEnvironmentCreated) IsSuccess() bool {
 	return true
 }
 
-// IsRedirect returns true when this post project project Id environment no content response has a 3xx status code
-func (o *PostProjectProjectIDEnvironmentNoContent) IsRedirect() bool {
+// IsRedirect returns true when this post project project Id environment created response has a 3xx status code
+func (o *PostProjectProjectIDEnvironmentCreated) IsRedirect() bool {
 	return false
 }
 
-// IsClientError returns true when this post project project Id environment no content response has a 4xx status code
-func (o *PostProjectProjectIDEnvironmentNoContent) IsClientError() bool {
+// IsClientError returns true when this post project project Id environment created response has a 4xx status code
+func (o *PostProjectProjectIDEnvironmentCreated) IsClientError() bool {
 	return false
 }
 
-// IsServerError returns true when this post project project Id environment no content response has a 5xx status code
-func (o *PostProjectProjectIDEnvironmentNoContent) IsServerError() bool {
+// IsServerError returns true when this post project project Id environment created response has a 5xx status code
+func (o *PostProjectProjectIDEnvironmentCreated) IsServerError() bool {
 	return false
 }
 
-// IsCode returns true when this post project project Id environment no content response a status code equal to that given
-func (o *PostProjectProjectIDEnvironmentNoContent) IsCode(code int) bool {
-	return code == 204
+// IsCode returns true when this post project project Id environment created response a status code equal to that given
+func (o *PostProjectProjectIDEnvironmentCreated) IsCode(code int) bool {
+	return code == 201
 }
 
-// Code gets the status code for the post project project Id environment no content response
-func (o *PostProjectProjectIDEnvironmentNoContent) Code() int {
-	return 204
+// Code gets the status code for the post project project Id environment created response
+func (o *PostProjectProjectIDEnvironmentCreated) Code() int {
+	return 201
 }
 
-func (o *PostProjectProjectIDEnvironmentNoContent) Error() string {
-	return fmt.Sprintf("[POST /project/{project_id}/environment][%d] postProjectProjectIdEnvironmentNoContent", 204)
+func (o *PostProjectProjectIDEnvironmentCreated) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/environment][%d] postProjectProjectIdEnvironmentCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDEnvironmentNoContent) String() string {
-	return fmt.Sprintf("[POST /project/{project_id}/environment][%d] postProjectProjectIdEnvironmentNoContent", 204)
+func (o *PostProjectProjectIDEnvironmentCreated) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/environment][%d] postProjectProjectIdEnvironmentCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDEnvironmentNoContent) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *PostProjectProjectIDEnvironmentCreated) GetPayload() *models.Environment {
+	return o.Payload
+}
+
+func (o *PostProjectProjectIDEnvironmentCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.Environment)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

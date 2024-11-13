@@ -36,6 +36,9 @@ type Inventory struct {
 	// project id
 	ProjectID int64 `json:"project_id,omitempty"`
 
+	// repository id
+	RepositoryID int64 `json:"repository_id,omitempty"`
+
 	// ssh key id
 	SSHKeyID int64 `json:"ssh_key_id,omitempty"`
 

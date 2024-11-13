@@ -70,9 +70,9 @@ type projectModel struct {
 func (r *projectResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `
-Provides a Semaphoreui Project resource.
+Provides a SemaphoreUI Project resource.
 
-A project is a place to separate management activity. All Semaphoreui activities occur within the context of a project.`,
+A project is a place to separate management activity. All SemaphoreUI activities occur within the context of a project.`,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
 				MarkdownDescription: "Project ID.",

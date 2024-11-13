@@ -6,10 +6,14 @@ package project
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
+
+	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
 // PostProjectProjectIDRepositoriesReader is a Reader for the PostProjectProjectIDRepositories structure.
@@ -20,8 +24,8 @@ type PostProjectProjectIDRepositoriesReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PostProjectProjectIDRepositoriesReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-	case 204:
-		result := NewPostProjectProjectIDRepositoriesNoContent()
+	case 201:
+		result := NewPostProjectProjectIDRepositoriesCreated()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -31,58 +35,72 @@ func (o *PostProjectProjectIDRepositoriesReader) ReadResponse(response runtime.C
 	}
 }
 
-// NewPostProjectProjectIDRepositoriesNoContent creates a PostProjectProjectIDRepositoriesNoContent with default headers values
-func NewPostProjectProjectIDRepositoriesNoContent() *PostProjectProjectIDRepositoriesNoContent {
-	return &PostProjectProjectIDRepositoriesNoContent{}
+// NewPostProjectProjectIDRepositoriesCreated creates a PostProjectProjectIDRepositoriesCreated with default headers values
+func NewPostProjectProjectIDRepositoriesCreated() *PostProjectProjectIDRepositoriesCreated {
+	return &PostProjectProjectIDRepositoriesCreated{}
 }
 
 /*
-PostProjectProjectIDRepositoriesNoContent describes a response with status code 204, with default header values.
+PostProjectProjectIDRepositoriesCreated describes a response with status code 201, with default header values.
 
 Repository created
 */
-type PostProjectProjectIDRepositoriesNoContent struct {
+type PostProjectProjectIDRepositoriesCreated struct {
+	Payload *models.Repository
 }
 
-// IsSuccess returns true when this post project project Id repositories no content response has a 2xx status code
-func (o *PostProjectProjectIDRepositoriesNoContent) IsSuccess() bool {
+// IsSuccess returns true when this post project project Id repositories created response has a 2xx status code
+func (o *PostProjectProjectIDRepositoriesCreated) IsSuccess() bool {
 	return true
 }
 
-// IsRedirect returns true when this post project project Id repositories no content response has a 3xx status code
-func (o *PostProjectProjectIDRepositoriesNoContent) IsRedirect() bool {
+// IsRedirect returns true when this post project project Id repositories created response has a 3xx status code
+func (o *PostProjectProjectIDRepositoriesCreated) IsRedirect() bool {
 	return false
 }
 
-// IsClientError returns true when this post project project Id repositories no content response has a 4xx status code
-func (o *PostProjectProjectIDRepositoriesNoContent) IsClientError() bool {
+// IsClientError returns true when this post project project Id repositories created response has a 4xx status code
+func (o *PostProjectProjectIDRepositoriesCreated) IsClientError() bool {
 	return false
 }
 
-// IsServerError returns true when this post project project Id repositories no content response has a 5xx status code
-func (o *PostProjectProjectIDRepositoriesNoContent) IsServerError() bool {
+// IsServerError returns true when this post project project Id repositories created response has a 5xx status code
+func (o *PostProjectProjectIDRepositoriesCreated) IsServerError() bool {
 	return false
 }
 
-// IsCode returns true when this post project project Id repositories no content response a status code equal to that given
-func (o *PostProjectProjectIDRepositoriesNoContent) IsCode(code int) bool {
-	return code == 204
+// IsCode returns true when this post project project Id repositories created response a status code equal to that given
+func (o *PostProjectProjectIDRepositoriesCreated) IsCode(code int) bool {
+	return code == 201
 }
 
-// Code gets the status code for the post project project Id repositories no content response
-func (o *PostProjectProjectIDRepositoriesNoContent) Code() int {
-	return 204
+// Code gets the status code for the post project project Id repositories created response
+func (o *PostProjectProjectIDRepositoriesCreated) Code() int {
+	return 201
 }
 
-func (o *PostProjectProjectIDRepositoriesNoContent) Error() string {
-	return fmt.Sprintf("[POST /project/{project_id}/repositories][%d] postProjectProjectIdRepositoriesNoContent", 204)
+func (o *PostProjectProjectIDRepositoriesCreated) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/repositories][%d] postProjectProjectIdRepositoriesCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDRepositoriesNoContent) String() string {
-	return fmt.Sprintf("[POST /project/{project_id}/repositories][%d] postProjectProjectIdRepositoriesNoContent", 204)
+func (o *PostProjectProjectIDRepositoriesCreated) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /project/{project_id}/repositories][%d] postProjectProjectIdRepositoriesCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDRepositoriesNoContent) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *PostProjectProjectIDRepositoriesCreated) GetPayload() *models.Repository {
+	return o.Payload
+}
+
+func (o *PostProjectProjectIDRepositoriesCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.Repository)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

@@ -106,15 +106,21 @@ type ClientService interface {
 
 	GetProjectProjectIDEnvironment(params *GetProjectProjectIDEnvironmentParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDEnvironmentOK, error)
 
+	GetProjectProjectIDEnvironmentEnvironmentID(params *GetProjectProjectIDEnvironmentEnvironmentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDEnvironmentEnvironmentIDOK, error)
+
 	GetProjectProjectIDEvents(params *GetProjectProjectIDEventsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDEventsOK, error)
 
 	GetProjectProjectIDIntegrations(params *GetProjectProjectIDIntegrationsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDIntegrationsOK, error)
 
 	GetProjectProjectIDInventory(params *GetProjectProjectIDInventoryParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDInventoryOK, error)
 
+	GetProjectProjectIDInventoryInventoryID(params *GetProjectProjectIDInventoryInventoryIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDInventoryInventoryIDOK, error)
+
 	GetProjectProjectIDKeys(params *GetProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDKeysOK, error)
 
 	GetProjectProjectIDRepositories(params *GetProjectProjectIDRepositoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDRepositoriesOK, error)
+
+	GetProjectProjectIDRepositoriesRepositoryID(params *GetProjectProjectIDRepositoriesRepositoryIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDRepositoriesRepositoryIDOK, error)
 
 	GetProjectProjectIDRole(params *GetProjectProjectIDRoleParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDRoleOK, error)
 
@@ -136,7 +142,7 @@ type ClientService interface {
 
 	GetProjectProjectIDViewsViewID(params *GetProjectProjectIDViewsViewIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDViewsViewIDOK, error)
 
-	PostProjectProjectIDEnvironment(params *PostProjectProjectIDEnvironmentParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDEnvironmentNoContent, error)
+	PostProjectProjectIDEnvironment(params *PostProjectProjectIDEnvironmentParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDEnvironmentCreated, error)
 
 	PostProjectProjectIDIntegrations(params *PostProjectProjectIDIntegrationsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDIntegrationsCreated, error)
 
@@ -146,9 +152,9 @@ type ClientService interface {
 
 	PostProjectProjectIDInventory(params *PostProjectProjectIDInventoryParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDInventoryCreated, error)
 
-	PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDKeysNoContent, error)
+	PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDKeysCreated, error)
 
-	PostProjectProjectIDRepositories(params *PostProjectProjectIDRepositoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDRepositoriesNoContent, error)
+	PostProjectProjectIDRepositories(params *PostProjectProjectIDRepositoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDRepositoriesCreated, error)
 
 	PostProjectProjectIDTasks(params *PostProjectProjectIDTasksParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDTasksCreated, error)
 
@@ -689,6 +695,45 @@ func (a *Client) GetProjectProjectIDEnvironment(params *GetProjectProjectIDEnvir
 }
 
 /*
+GetProjectProjectIDEnvironmentEnvironmentID gets environment
+*/
+func (a *Client) GetProjectProjectIDEnvironmentEnvironmentID(params *GetProjectProjectIDEnvironmentEnvironmentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDEnvironmentEnvironmentIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetProjectProjectIDEnvironmentEnvironmentIDParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetProjectProjectIDEnvironmentEnvironmentID",
+		Method:             "GET",
+		PathPattern:        "/project/{project_id}/environment/{environment_id}",
+		ProducesMediaTypes: []string{"application/json", "text/plain; charset=utf-8"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetProjectProjectIDEnvironmentEnvironmentIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetProjectProjectIDEnvironmentEnvironmentIDOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetProjectProjectIDEnvironmentEnvironmentID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
 GetProjectProjectIDEvents gets events related to this project
 */
 func (a *Client) GetProjectProjectIDEvents(params *GetProjectProjectIDEventsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDEventsOK, error) {
@@ -806,6 +851,45 @@ func (a *Client) GetProjectProjectIDInventory(params *GetProjectProjectIDInvento
 }
 
 /*
+GetProjectProjectIDInventoryInventoryID gets inventory
+*/
+func (a *Client) GetProjectProjectIDInventoryInventoryID(params *GetProjectProjectIDInventoryInventoryIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDInventoryInventoryIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetProjectProjectIDInventoryInventoryIDParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetProjectProjectIDInventoryInventoryID",
+		Method:             "GET",
+		PathPattern:        "/project/{project_id}/inventory/{inventory_id}",
+		ProducesMediaTypes: []string{"application/json", "text/plain; charset=utf-8"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetProjectProjectIDInventoryInventoryIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetProjectProjectIDInventoryInventoryIDOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetProjectProjectIDInventoryInventoryID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
 GetProjectProjectIDKeys gets access keys linked to project
 */
 func (a *Client) GetProjectProjectIDKeys(params *GetProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDKeysOK, error) {
@@ -880,6 +964,45 @@ func (a *Client) GetProjectProjectIDRepositories(params *GetProjectProjectIDRepo
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetProjectProjectIDRepositories: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+GetProjectProjectIDRepositoriesRepositoryID gets repository
+*/
+func (a *Client) GetProjectProjectIDRepositoriesRepositoryID(params *GetProjectProjectIDRepositoriesRepositoryIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetProjectProjectIDRepositoriesRepositoryIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetProjectProjectIDRepositoriesRepositoryIDParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetProjectProjectIDRepositoriesRepositoryID",
+		Method:             "GET",
+		PathPattern:        "/project/{project_id}/repositories/{repository_id}",
+		ProducesMediaTypes: []string{"application/json", "text/plain; charset=utf-8"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetProjectProjectIDRepositoriesRepositoryIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetProjectProjectIDRepositoriesRepositoryIDOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetProjectProjectIDRepositoriesRepositoryID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
@@ -1276,7 +1399,7 @@ func (a *Client) GetProjectProjectIDViewsViewID(params *GetProjectProjectIDViews
 /*
 PostProjectProjectIDEnvironment adds environment
 */
-func (a *Client) PostProjectProjectIDEnvironment(params *PostProjectProjectIDEnvironmentParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDEnvironmentNoContent, error) {
+func (a *Client) PostProjectProjectIDEnvironment(params *PostProjectProjectIDEnvironmentParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDEnvironmentCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostProjectProjectIDEnvironmentParams()
@@ -1302,7 +1425,7 @@ func (a *Client) PostProjectProjectIDEnvironment(params *PostProjectProjectIDEnv
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*PostProjectProjectIDEnvironmentNoContent)
+	success, ok := result.(*PostProjectProjectIDEnvironmentCreated)
 	if ok {
 		return success, nil
 	}
@@ -1471,7 +1594,7 @@ func (a *Client) PostProjectProjectIDInventory(params *PostProjectProjectIDInven
 /*
 PostProjectProjectIDKeys adds access key
 */
-func (a *Client) PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDKeysNoContent, error) {
+func (a *Client) PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDKeysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostProjectProjectIDKeysParams()
@@ -1497,7 +1620,7 @@ func (a *Client) PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*PostProjectProjectIDKeysNoContent)
+	success, ok := result.(*PostProjectProjectIDKeysCreated)
 	if ok {
 		return success, nil
 	}
@@ -1510,7 +1633,7 @@ func (a *Client) PostProjectProjectIDKeys(params *PostProjectProjectIDKeysParams
 /*
 PostProjectProjectIDRepositories adds repository
 */
-func (a *Client) PostProjectProjectIDRepositories(params *PostProjectProjectIDRepositoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDRepositoriesNoContent, error) {
+func (a *Client) PostProjectProjectIDRepositories(params *PostProjectProjectIDRepositoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostProjectProjectIDRepositoriesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostProjectProjectIDRepositoriesParams()
@@ -1536,7 +1659,7 @@ func (a *Client) PostProjectProjectIDRepositories(params *PostProjectProjectIDRe
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*PostProjectProjectIDRepositoriesNoContent)
+	success, ok := result.(*PostProjectProjectIDRepositoriesCreated)
 	if ok {
 		return success, nil
 	}

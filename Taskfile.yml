@@ -53,17 +53,17 @@ tasks:
   testacc:
     desc: Run acceptance tests using docker
     vars:
-      api_token:
+      API_TOKEN:
         sh: head -c32 /dev/urandom | base64
     env:
       SEMAPHOREUI_HOSTNAME: localhost
       SEMAPHOREUI_PORT: 13000
       SEMAPHOREUI_PROTOCOL: http
-      SEMAPHOREUI_API_TOKEN: "{{.api_token}}"
+      SEMAPHOREUI_API_TOKEN: "{{.API_TOKEN}}"
       TF_ACC: 1
     cmds:
       - task: docker:start
       - defer: task docker:stop
       - scripts/wait_for_test_env_ready.sh
       - scripts/setup_test_env.sh
-      - go test -v -cover -timeout 120m ./internal/...
+      - go test -v -cover -timeout 120m {{.CLI_ARGS}} ./internal/...

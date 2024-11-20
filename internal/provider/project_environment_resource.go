@@ -94,9 +94,9 @@ A project environment provides a list of extra and environment variables that ca
 				Optional:            true,
 			},
 			"secrets": schema.ListNestedAttribute{
-				NestedObject:        projectEnvironmentSecretModel{}.GetSchema(),
 				MarkdownDescription: "Secret variables of either `\"var\"` or `\"env\"` type. The `value` is encrypted and will be empty if imported.",
 				Optional:            true,
+				NestedObject:        projectEnvironmentSecretModel{}.GetSchema(),
 			},
 		},
 	}
@@ -120,7 +120,6 @@ func (projectEnvironmentSecretModel) GetSchema() schema.NestedAttributeObject {
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					//planmodifiers.SetValueIf(ifTypeChanged, types.Int64Unknown()),
 				},
 			},
 			"type": schema.StringAttribute{
@@ -263,13 +262,13 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 	return &model
 }
 
-var _ sort.Interface = ByID{}
+var _ sort.Interface = ByEnvironmentID{}
 
-type ByID []*models.EnvironmentSecret
+type ByEnvironmentID []*models.EnvironmentSecret
 
-func (a ByID) Len() int           { return len(a) }
-func (a ByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
+func (a ByEnvironmentID) Len() int           { return len(a) }
+func (a ByEnvironmentID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByEnvironmentID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, environment *models.Environment, prev *projectEnvironmentModel) projectEnvironmentModel {
 	model := projectEnvironmentModel{
@@ -292,7 +291,7 @@ func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, en
 		model.Environment = nil
 	}
 
-	sort.Sort(ByID(environment.Secrets))
+	sort.Sort(ByEnvironmentID(environment.Secrets))
 
 	var secrets []projectEnvironmentSecretModel
 	for _, secret := range environment.Secrets {

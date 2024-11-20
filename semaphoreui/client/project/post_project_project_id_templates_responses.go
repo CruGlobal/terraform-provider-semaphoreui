@@ -46,7 +46,7 @@ PostProjectProjectIDTemplatesCreated describes a response with status code 201, 
 template created
 */
 type PostProjectProjectIDTemplatesCreated struct {
-	Payload *models.TemplateRequest
+	Payload *models.Template
 }
 
 // IsSuccess returns true when this post project project Id templates created response has a 2xx status code
@@ -89,13 +89,13 @@ func (o *PostProjectProjectIDTemplatesCreated) String() string {
 	return fmt.Sprintf("[POST /project/{project_id}/templates][%d] postProjectProjectIdTemplatesCreated %s", 201, payload)
 }
 
-func (o *PostProjectProjectIDTemplatesCreated) GetPayload() *models.TemplateRequest {
+func (o *PostProjectProjectIDTemplatesCreated) GetPayload() *models.Template {
 	return o.Payload
 }
 
 func (o *PostProjectProjectIDTemplatesCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.TemplateRequest)
+	o.Payload = new(models.Template)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

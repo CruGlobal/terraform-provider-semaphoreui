@@ -220,6 +220,7 @@ func (p *SemaphoreUIProvider) Resources(ctx context.Context) []func() resource.R
 		NewProjectKeyResource,
 		NewProjectRepositoryResource,
 		NewProjectResource,
+		NewProjectTemplateResource,
 		NewProjectUserResource,
 		NewUserResource,
 	}

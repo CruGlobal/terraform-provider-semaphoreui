@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -32,6 +33,12 @@ type TemplateRequest struct {
 	// Example: []
 	Arguments string `json:"arguments,omitempty"`
 
+	// autorun
+	Autorun bool `json:"autorun,omitempty"`
+
+	// build template id
+	BuildTemplateID int64 `json:"build_template_id,omitempty"`
+
 	// description
 	// Example: Hello, World!
 	Description string `json:"description,omitempty"`
@@ -43,6 +50,9 @@ type TemplateRequest struct {
 	// git branch
 	// Example: main
 	GitBranch string `json:"git_branch,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
 
 	// inventory id
 	// Minimum: 1
@@ -67,11 +77,18 @@ type TemplateRequest struct {
 	// Minimum: 1
 	RepositoryID int64 `json:"repository_id,omitempty"`
 
+	// start version
+	StartVersion string `json:"start_version,omitempty"`
+
 	// suppress success alerts
 	SuppressSuccessAlerts bool `json:"suppress_success_alerts,omitempty"`
 
 	// survey vars
 	SurveyVars []*TemplateSurveyVar `json:"survey_vars"`
+
+	// type
+	// Enum: ["build","deploy"]
+	Type string `json:"type,omitempty"`
 
 	// vaults
 	Vaults []*TemplateVault `json:"vaults"`
@@ -102,6 +119,10 @@ func (m *TemplateRequest) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSurveyVars(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -188,6 +209,48 @@ func (m *TemplateRequest) validateSurveyVars(formats strfmt.Registry) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+var templateRequestTypeTypePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["build","deploy"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		templateRequestTypeTypePropEnum = append(templateRequestTypeTypePropEnum, v)
+	}
+}
+
+const (
+
+	// TemplateRequestTypeBuild captures enum value "build"
+	TemplateRequestTypeBuild string = "build"
+
+	// TemplateRequestTypeDeploy captures enum value "deploy"
+	TemplateRequestTypeDeploy string = "deploy"
+)
+
+// prop value enum
+func (m *TemplateRequest) validateTypeEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, templateRequestTypeTypePropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *TemplateRequest) validateType(formats strfmt.Registry) error {
+	if swag.IsZero(m.Type) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateTypeEnum("type", "body", m.Type); err != nil {
+		return err
 	}
 
 	return nil

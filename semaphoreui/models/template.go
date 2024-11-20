@@ -7,6 +7,8 @@ package models
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -29,6 +31,12 @@ type Template struct {
 	// arguments
 	// Example: []
 	Arguments string `json:"arguments,omitempty"`
+
+	// autorun
+	Autorun bool `json:"autorun,omitempty"`
+
+	// build template id
+	BuildTemplateID int64 `json:"build_template_id,omitempty"`
 
 	// description
 	// Example: Hello, World!
@@ -65,8 +73,21 @@ type Template struct {
 	// repository id
 	RepositoryID int64 `json:"repository_id,omitempty"`
 
+	// start version
+	StartVersion string `json:"start_version,omitempty"`
+
 	// suppress success alerts
 	SuppressSuccessAlerts bool `json:"suppress_success_alerts,omitempty"`
+
+	// survey vars
+	SurveyVars []*TemplateSurveyVar `json:"survey_vars"`
+
+	// type
+	// Enum: ["build","deploy"]
+	Type string `json:"type,omitempty"`
+
+	// vaults
+	Vaults []*TemplateVault `json:"vaults"`
 
 	// view id
 	// Minimum: 1
@@ -90,6 +111,18 @@ func (m *Template) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateProjectID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSurveyVars(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateType(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVaults(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -151,6 +184,100 @@ func (m *Template) validateProjectID(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Template) validateSurveyVars(formats strfmt.Registry) error {
+	if swag.IsZero(m.SurveyVars) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.SurveyVars); i++ {
+		if swag.IsZero(m.SurveyVars[i]) { // not required
+			continue
+		}
+
+		if m.SurveyVars[i] != nil {
+			if err := m.SurveyVars[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("survey_vars" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("survey_vars" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+var templateTypeTypePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["build","deploy"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		templateTypeTypePropEnum = append(templateTypeTypePropEnum, v)
+	}
+}
+
+const (
+
+	// TemplateTypeBuild captures enum value "build"
+	TemplateTypeBuild string = "build"
+
+	// TemplateTypeDeploy captures enum value "deploy"
+	TemplateTypeDeploy string = "deploy"
+)
+
+// prop value enum
+func (m *Template) validateTypeEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, templateTypeTypePropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Template) validateType(formats strfmt.Registry) error {
+	if swag.IsZero(m.Type) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateTypeEnum("type", "body", m.Type); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Template) validateVaults(formats strfmt.Registry) error {
+	if swag.IsZero(m.Vaults) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Vaults); i++ {
+		if swag.IsZero(m.Vaults[i]) { // not required
+			continue
+		}
+
+		if m.Vaults[i] != nil {
+			if err := m.Vaults[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("vaults" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("vaults" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 func (m *Template) validateViewID(formats strfmt.Registry) error {
 	if swag.IsZero(m.ViewID) { // not required
 		return nil
@@ -163,8 +290,71 @@ func (m *Template) validateViewID(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this template based on context it is used
+// ContextValidate validate this template based on the context it is used
 func (m *Template) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateSurveyVars(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateVaults(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Template) contextValidateSurveyVars(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.SurveyVars); i++ {
+
+		if m.SurveyVars[i] != nil {
+
+			if swag.IsZero(m.SurveyVars[i]) { // not required
+				return nil
+			}
+
+			if err := m.SurveyVars[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("survey_vars" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("survey_vars" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *Template) contextValidateVaults(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Vaults); i++ {
+
+		if m.Vaults[i] != nil {
+
+			if swag.IsZero(m.Vaults[i]) { // not required
+				return nil
+			}
+
+			if err := m.Vaults[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("vaults" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("vaults" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

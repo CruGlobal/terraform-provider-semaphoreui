@@ -20,12 +20,21 @@ import (
 // swagger:model TemplateVault
 type TemplateVault struct {
 
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// name
 	// Example: default
 	Name string `json:"name,omitempty"`
 
+	// project id
+	ProjectID int64 `json:"project_id,omitempty"`
+
 	// script
 	Script string `json:"script,omitempty"`
+
+	// template id
+	TemplateID int64 `json:"template_id,omitempty"`
 
 	// type
 	// Example: script

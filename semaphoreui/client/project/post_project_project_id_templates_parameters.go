@@ -70,8 +70,8 @@ type PostProjectProjectIDTemplatesParams struct {
 	*/
 	ProjectID int64
 
-	// Templateyes.
-	Templateyes *models.TemplateRequest
+	// Template.
+	Template *models.TemplateRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -137,15 +137,15 @@ func (o *PostProjectProjectIDTemplatesParams) SetProjectID(projectID int64) {
 	o.ProjectID = projectID
 }
 
-// WithTemplateyes adds the templateyes to the post project project ID templates params
-func (o *PostProjectProjectIDTemplatesParams) WithTemplateyes(templateyes *models.TemplateRequest) *PostProjectProjectIDTemplatesParams {
-	o.SetTemplateyes(templateyes)
+// WithTemplate adds the template to the post project project ID templates params
+func (o *PostProjectProjectIDTemplatesParams) WithTemplate(template *models.TemplateRequest) *PostProjectProjectIDTemplatesParams {
+	o.SetTemplate(template)
 	return o
 }
 
-// SetTemplateyes adds the templateyes to the post project project ID templates params
-func (o *PostProjectProjectIDTemplatesParams) SetTemplateyes(templateyes *models.TemplateRequest) {
-	o.Templateyes = templateyes
+// SetTemplate adds the template to the post project project ID templates params
+func (o *PostProjectProjectIDTemplatesParams) SetTemplate(template *models.TemplateRequest) {
+	o.Template = template
 }
 
 // WriteToRequest writes these params to a swagger request
@@ -160,8 +160,8 @@ func (o *PostProjectProjectIDTemplatesParams) WriteToRequest(r runtime.ClientReq
 	if err := r.SetPathParam("project_id", swag.FormatInt64(o.ProjectID)); err != nil {
 		return err
 	}
-	if o.Templateyes != nil {
-		if err := r.SetBodyParam(o.Templateyes); err != nil {
+	if o.Template != nil {
+		if err := r.SetBodyParam(o.Template); err != nil {
 			return err
 		}
 	}

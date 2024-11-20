@@ -43,7 +43,7 @@ type Inventory struct {
 	SSHKeyID int64 `json:"ssh_key_id,omitempty"`
 
 	// type
-	// Enum: ["static","static-yaml","file","terraform-workspace","tofu-workspace"]
+	// Enum: ["static","static-yaml","file","terraform-workspace"]
 	Type string `json:"type,omitempty"`
 }
 
@@ -65,7 +65,7 @@ var inventoryTypeTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["static","static-yaml","file","terraform-workspace","tofu-workspace"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["static","static-yaml","file","terraform-workspace"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -86,9 +86,6 @@ const (
 
 	// InventoryTypeTerraformDashWorkspace captures enum value "terraform-workspace"
 	InventoryTypeTerraformDashWorkspace string = "terraform-workspace"
-
-	// InventoryTypeTofuDashWorkspace captures enum value "tofu-workspace"
-	InventoryTypeTofuDashWorkspace string = "tofu-workspace"
 )
 
 // prop value enum

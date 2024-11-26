@@ -83,7 +83,7 @@ type Template struct {
 	SurveyVars []*TemplateSurveyVar `json:"survey_vars"`
 
 	// type
-	// Enum: ["build","deploy"]
+	// Enum: ["","build","deploy"]
 	Type string `json:"type,omitempty"`
 
 	// vaults
@@ -214,7 +214,7 @@ var templateTypeTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["build","deploy"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["","build","deploy"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -223,6 +223,9 @@ func init() {
 }
 
 const (
+
+	// TemplateTypeEmpty captures enum value ""
+	TemplateTypeEmpty string = ""
 
 	// TemplateTypeBuild captures enum value "build"
 	TemplateTypeBuild string = "build"

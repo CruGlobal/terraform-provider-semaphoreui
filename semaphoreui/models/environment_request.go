@@ -25,6 +25,7 @@ type EnvironmentRequest struct {
 	Env string `json:"env,omitempty"`
 
 	// id
+	// Example: 1
 	ID int64 `json:"id,omitempty"`
 
 	// json

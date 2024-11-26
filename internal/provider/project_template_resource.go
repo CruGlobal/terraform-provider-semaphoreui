@@ -399,11 +399,7 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 		template.Vaults.ElementsAs(ctx, &vaults, false)
 		for _, vault := range vaults {
 			vaultModel := models.TemplateVault{
-				Name:      vault.Name.ValueString(),
-				ProjectID: template.ProjectID.ValueInt64(),
-			}
-			if !template.ID.IsNull() && !template.ID.IsUnknown() {
-				vaultModel.TemplateID = template.ID.ValueInt64()
+				Name: vault.Name.ValueString(),
 			}
 			if !vault.ID.IsNull() && !vault.ID.IsUnknown() {
 				vaultModel.ID = vault.ID.ValueInt64()
@@ -490,7 +486,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 		}
 	}
 
-	if request.SurveyVars == nil || len(request.SurveyVars) == 0 {
+	if len(request.SurveyVars) == 0 {
 		model.SurveyVars = prev.SurveyVars
 	} else {
 		var surveyVars []projectTemplateSurveyVarModel
@@ -517,7 +513,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 		model.SurveyVars = surveyVarsModel
 	}
 
-	if request.Vaults == nil || len(request.Vaults) == 0 {
+	if len(request.Vaults) == 0 {
 		model.Vaults = prev.Vaults
 	} else {
 		sort.Sort(ByVaultID(request.Vaults))

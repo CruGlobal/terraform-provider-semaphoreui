@@ -27,14 +27,9 @@ type TemplateVault struct {
 	// Example: default
 	Name string `json:"name,omitempty"`
 
-	// project id
-	ProjectID int64 `json:"project_id,omitempty"`
-
 	// script
+	// Example: path/to/script-client.py
 	Script string `json:"script,omitempty"`
-
-	// template id
-	TemplateID int64 `json:"template_id,omitempty"`
 
 	// type
 	// Example: script

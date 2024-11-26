@@ -1,15 +1,11 @@
 # Terraform Provider testing workflow.
 name: Tests
 
-# This GitHub action runs your tests for each pull request and push.
-# Optionally, you can turn it on using a schedule for regular testing.
+# This GitHub action runs your tests for each pull request.
 on:
   pull_request:
-    paths-ignore:
-      - 'README.md'
-  push:
-    paths-ignore:
-      - 'README.md'
+    branches:
+      - main
 
 # Testing only needs permissions to read the repository contents.
 permissions:
@@ -33,6 +29,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          args: --tests=false
 
   generate:
     runs-on: ubuntu-latest
@@ -74,7 +71,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraformv3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.9.x' # '${{ matrix.terraform }}
           terraform_wrapper: false

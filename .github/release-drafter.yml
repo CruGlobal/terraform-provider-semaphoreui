@@ -10,6 +10,7 @@ categories:
     labels:
       - feature
       - enhancement
+      - chore
   - title: Fixed
     labels:
       - fix

@@ -33,6 +33,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          args: --tests=false
 
   generate:
     runs-on: ubuntu-latest

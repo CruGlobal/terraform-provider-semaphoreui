@@ -1,0 +1,54 @@
+# This release drafter follows the conventions
+# from https://keepachangelog.com
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+template: '$CHANGES'
+category-template: '### $TITLE'
+categories:
+  - title: Added
+    labels:
+      - feature
+      - enhancement
+  - title: Fixed
+    labels:
+      - fix
+      - bug
+  - title: Changed
+    labels:
+      - changed
+  - title: Deprecated
+    labels:
+      - deprecated
+  - title: Removed
+    labels:
+      - removed
+  - title: Security
+    labels:
+      - security
+  - title: Documentation
+    labels:
+      - docs
+      - documentation
+  - title: Dependency Updates
+    labels:
+      - deps
+      - dependencies
+    collapse-after: 5
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - major
+  minor:
+    labels:
+      - minor
+  patch:
+    labels:
+      - patch
+  default: patch
+
+exclude-labels:
+  - skip-changelog

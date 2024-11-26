@@ -2,8 +2,11 @@
 
 The [SemaphoreUI Provider](https://registry.terraform.io/providers/CruGlobal/semaphoreui/latest/docs) enables [Terraform](https://terraform.io) to manage [SemaphoreUI](https://semaphoreui.com/) resources.
 
+This project uses Conventional Commits in order to automatically manage releases as well as keeping the CHANGELOG.md updated. CHANGELOG follows the Keep a Changelog spec.
+
 ## WARNING
 This provider requires changes to SemaphoreUI API which are not yet released. It will not function until those changes have been released. https://github.com/semaphoreui/semaphore/pull/2553
+Changes are currently in the `develop` branch of the SemaphoreUI project.
 
 
 ### SemaphoreUI API Client

@@ -34,7 +34,7 @@ type TemplateSurveyVar struct {
 	Title string `json:"title,omitempty"`
 
 	// type
-	// Example: String =\u003e \"\", Integer =\u003e \"int\
+	// Example: int
 	// Enum: ["","int","enum","secret"]
 	Type string `json:"type,omitempty"`
 

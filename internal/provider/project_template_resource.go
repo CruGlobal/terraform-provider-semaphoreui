@@ -399,11 +399,7 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 		template.Vaults.ElementsAs(ctx, &vaults, false)
 		for _, vault := range vaults {
 			vaultModel := models.TemplateVault{
-				Name:      vault.Name.ValueString(),
-				ProjectID: template.ProjectID.ValueInt64(),
-			}
-			if !template.ID.IsNull() && !template.ID.IsUnknown() {
-				vaultModel.TemplateID = template.ID.ValueInt64()
+				Name: vault.Name.ValueString(),
 			}
 			if !vault.ID.IsNull() && !vault.ID.IsUnknown() {
 				vaultModel.ID = vault.ID.ValueInt64()

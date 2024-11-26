@@ -14,7 +14,7 @@ services:
       MYSQL_PASSWORD: semaphore
   semaphore:
     container_name: semaphore
-    image: semaphoreui/semaphore:latest
+    image: semaphoreui/semaphore:develop
     ports:
       - "13000:3000"
     environment:

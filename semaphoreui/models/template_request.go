@@ -52,6 +52,7 @@ type TemplateRequest struct {
 	GitBranch string `json:"git_branch,omitempty"`
 
 	// id
+	// Example: 1
 	ID int64 `json:"id,omitempty"`
 
 	// inventory id
@@ -87,7 +88,7 @@ type TemplateRequest struct {
 	SurveyVars []*TemplateSurveyVar `json:"survey_vars"`
 
 	// type
-	// Enum: ["build","deploy"]
+	// Enum: ["","build","deploy"]
 	Type string `json:"type,omitempty"`
 
 	// vaults
@@ -218,7 +219,7 @@ var templateRequestTypeTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["build","deploy"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["","build","deploy"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -227,6 +228,9 @@ func init() {
 }
 
 const (
+
+	// TemplateRequestTypeEmpty captures enum value ""
+	TemplateRequestTypeEmpty string = ""
 
 	// TemplateRequestTypeBuild captures enum value "build"
 	TemplateRequestTypeBuild string = "build"

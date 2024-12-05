@@ -31,7 +31,7 @@ resource "semaphoreui_project_environment" "environment" {
   }
 
   # environment variables
-  environment_variables = {
+  environment = {
     KEY1 = "value1"
     KEY2 = "value2"
   }
@@ -63,9 +63,7 @@ resource "semaphoreui_project_environment" "environment" {
 
 - `environment` (Map of String) Environment variables.
 - `secrets` (Attributes List) Secret variables of either `"var"` or `"env"` type. The `value` is encrypted and will be empty if imported. (see [below for nested schema](#nestedatt--secrets))
-- `variables` (Map of String) Extra variables.
-
-Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).
+- `variables` (Map of String) Extra variables. Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).
 
 ### Read-Only
 

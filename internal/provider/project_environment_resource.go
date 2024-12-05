@@ -84,7 +84,7 @@ A project environment provides a list of extra and environment variables that ca
 				Required:            true,
 			},
 			"variables": schema.MapAttribute{
-				MarkdownDescription: "Extra variables.\n\nPassed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).",
+				MarkdownDescription: "Extra variables. Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).",
 				ElementType:         types.StringType,
 				Optional:            true,
 			},

@@ -60,6 +60,7 @@ tasks:
       SEMAPHOREUI_PROTOCOL: http
       SEMAPHOREUI_API_TOKEN: "{{.API_TOKEN}}"
       TF_ACC: 1
+    silent: true
     cmds:
       - task: docker:start
       - defer: task docker:stop

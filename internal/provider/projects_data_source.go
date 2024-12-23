@@ -50,40 +50,20 @@ type projectsDataSourceModel struct {
 }
 
 // Schema defines the schema for the data source.
-func (d *projectsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *projectsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	projectAttributes := projectSchema().GetDataSource(ctx).Attributes
+	projectAttributes["id"] = schema.Int64Attribute{
+		MarkdownDescription: "The ID of the project.",
+		Computed:            true,
+	}
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a List of SemaphoreUI Projects.\n",
+		MarkdownDescription: "Provides a List of SemaphoreUI Projects.",
 		Attributes: map[string]schema.Attribute{
 			"projects": schema.ListNestedAttribute{
 				MarkdownDescription: "List of projects.",
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.Int64Attribute{
-							MarkdownDescription: "Project ID.",
-							Computed:            true,
-						},
-						"created": schema.StringAttribute{
-							MarkdownDescription: "Creation date of the project.",
-							Computed:            true,
-						},
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Project name.",
-							Computed:            true,
-						},
-						"alert": schema.BoolAttribute{
-							MarkdownDescription: "Are alerts enabled for this project.",
-							Computed:            true,
-						},
-						"alert_chat": schema.StringAttribute{
-							MarkdownDescription: "Telegram chat ID.",
-							Computed:            true,
-						},
-						"max_parallel_tasks": schema.Int64Attribute{
-							MarkdownDescription: "Maximum number of parallel tasks, `0` for unlimited.",
-							Computed:            true,
-						},
-					},
+					Attributes: projectAttributes,
 				},
 			},
 		},

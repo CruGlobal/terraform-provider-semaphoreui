@@ -8,7 +8,6 @@ import (
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,36 +45,8 @@ func (d *projectDataSource) Metadata(_ context.Context, req datasource.MetadataR
 }
 
 // Schema defines the schema for the data source.
-func (d *projectDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Lookup a SemaphoreUI Project.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "Project ID.",
-				Required:            true,
-			},
-			"created": schema.StringAttribute{
-				MarkdownDescription: "Creation date of the project.",
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Project name.",
-				Computed:            true,
-			},
-			"alert": schema.BoolAttribute{
-				MarkdownDescription: "Are alerts enabled for this project.",
-				Computed:            true,
-			},
-			"alert_chat": schema.StringAttribute{
-				MarkdownDescription: "Telegram chat ID.",
-				Computed:            true,
-			},
-			"max_parallel_tasks": schema.Int64Attribute{
-				MarkdownDescription: "Maximum number of parallel tasks, `0` for unlimited.",
-				Computed:            true,
-			},
-		},
-	}
+func (d *projectDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = projectSchema().GetDataSource(ctx)
 }
 
 func (d *projectDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

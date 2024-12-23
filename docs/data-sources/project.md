@@ -3,12 +3,12 @@
 page_title: "semaphoreui_project Data Source - semaphoreui"
 subcategory: ""
 description: |-
-  Lookup a SemaphoreUI Project.
+  The project data source allows you to read a project in SemaphoreUI.
 ---
 
 # semaphoreui_project (Data Source)
 
-Lookup a SemaphoreUI Project.
+The project data source allows you to read a project in SemaphoreUI.
 
 ## Example Usage
 
@@ -24,11 +24,11 @@ data "semaphoreui_project" "project" {
 
 ### Required
 
-- `id` (Number) Project ID.
+- `id` (Number) The ID of the project.
 
 ### Read-Only
 
-- `alert` (Boolean) Are alerts enabled for this project.
+- `alert` (Boolean) Allow alerts for this project.
 - `alert_chat` (String) Telegram chat ID.
 - `created` (String) Creation date of the project.
 - `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited.

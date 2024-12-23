@@ -28,9 +28,9 @@ data "semaphoreui_projects" "example" {}
 
 Read-Only:
 
-- `alert` (Boolean) Are alerts enabled for this project.
+- `alert` (Boolean) Allow alerts for this project.
 - `alert_chat` (String) Telegram chat ID.
 - `created` (String) Creation date of the project.
-- `id` (Number) Project ID.
+- `id` (Number) The ID of the project.
 - `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited.
 - `name` (String) Project name.

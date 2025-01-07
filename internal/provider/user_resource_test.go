@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"regexp"
 	"strconv"
 	"terraform-provider-semaphoreui/semaphoreui/client/user"
 	"testing"
@@ -40,6 +41,22 @@ resource "semaphoreui_user" "test" {
   email    = "test@example.com"
   %[2]s
 }`, userNameSuffix, userExtras)
+}
+
+func testAccUserConfig_Exists(userNameSuffix string) string {
+	return fmt.Sprintf(`
+resource "semaphoreui_user" "existing" {
+  username = "test-%[1]s"
+  name	   = "Test User"
+  email	   = "test@example.com"
+}
+
+resource "semaphoreui_user" "test" {
+  username       = "test-%[1]s"
+  name           = "Test User"
+  email          = "test@example.com"
+  depends_on = [semaphoreui_user.existing]
+}`, userNameSuffix)
 }
 
 func testAccUserImportID(n string) resource.ImportStateIdFunc {
@@ -101,6 +118,22 @@ password = "something"`),
 					resource.TestCheckResourceAttr("semaphoreui_user.test", "alert", "false"),
 					resource.TestCheckResourceAttr("semaphoreui_user.test", "external", "false"),
 				),
+			},
+		},
+	})
+}
+
+func TestAcc_UserResource_errorOnExists(t *testing.T) {
+	userNameSuffix := acctest.RandString(8)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+			// Create and Read testing
+			{
+				Config:      testAccUserConfig_Exists(userNameSuffix),
+				ExpectError: regexp.MustCompile("Could not create user, unexpected error"),
 			},
 		},
 	})

@@ -3,12 +3,12 @@
 page_title: "semaphoreui_user Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI User resource.
+  The user resource allows you to manage a User in SemaphoreUI.
 ---
 
 # semaphoreui_user (Resource)
 
-Provides a SemaphoreUI User resource.
+The user resource allows you to manage a User in SemaphoreUI.
 
 ## Example Usage
 
@@ -36,15 +36,15 @@ resource "semaphoreui_user" "example" {
 
 ### Optional
 
-- `admin` (Boolean) Is the user an admin? Default `false`.
-- `alert` (Boolean) Send alerts to the user's email? Default `false`.
-- `external` (Boolean) Is the user linked to an external identity provider? Default `false`.
-- `password` (String, Sensitive) Login Password.
+- `admin` (Boolean) Is the user an admin?. Value defaults to `false`.
+- `alert` (Boolean) Send alerts to the user's email?. Value defaults to `false`.
+- `external` (Boolean) (ForceNew) Is the user linked to an external identity provider?. Value defaults to `false`.
+- `password` (String, Sensitive) Login Password. This value is never returned by the API and will be an empty string after import.
 
 ### Read-Only
 
 - `created` (String) Creation date of the user.
-- `id` (Number) User ID.
+- `id` (Number) The ID of the user.
 
 ## Import
 

@@ -1,13 +1,13 @@
 package provider
 
 import (
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"

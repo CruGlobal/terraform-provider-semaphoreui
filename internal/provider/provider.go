@@ -231,6 +231,7 @@ func (p *SemaphoreUIProvider) DataSources(ctx context.Context) []func() datasour
 	return []func() datasource.DataSource{
 		NewProjectDataSource,
 		NewProjectsDataSource,
+		NewUserDataSource,
 	}
 }
 

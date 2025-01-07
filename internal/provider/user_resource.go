@@ -6,12 +6,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/user"
@@ -54,84 +48,12 @@ func (r *userResource) Metadata(_ context.Context, req resource.MetadataRequest,
 	resp.TypeName = req.ProviderTypeName + "_user"
 }
 
-type userModel struct {
-	ID       types.Int64  `tfsdk:"id"`
-	Created  types.String `tfsdk:"created"`
-	Username types.String `tfsdk:"username"`
-	Name     types.String `tfsdk:"name"`
-	Email    types.String `tfsdk:"email"`
-	Password types.String `tfsdk:"password"`
-	Admin    types.Bool   `tfsdk:"admin"`
-	External types.Bool   `tfsdk:"external"`
-	Alert    types.Bool   `tfsdk:"alert"`
+func (r *userResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = userSchema().GetResource(ctx)
 }
 
-func (r *userResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `
-Provides a SemaphoreUI User resource.`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "User ID.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
-			},
-			"created": schema.StringAttribute{
-				MarkdownDescription: "Creation date of the user.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"username": schema.StringAttribute{
-				MarkdownDescription: "Username.",
-				Required:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Display name.",
-				Required:            true,
-			},
-			"email": schema.StringAttribute{
-				MarkdownDescription: "Email address.",
-				Required:            true,
-			},
-			"password": schema.StringAttribute{
-				MarkdownDescription: "Login Password.",
-				Optional:            true,
-				Sensitive:           true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"admin": schema.BoolAttribute{
-				MarkdownDescription: "Is the user an admin? Default `false`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"alert": schema.BoolAttribute{
-				MarkdownDescription: "Send alerts to the user's email? Default `false`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"external": schema.BoolAttribute{
-				MarkdownDescription: "Is the user linked to an external identity provider? Default `false`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
-			},
-		},
-	}
-}
-
-func convertResponsePayloadToUserModel(user *models.User, password types.String) userModel {
-	return userModel{
+func convertResponsePayloadToUserModel(user *models.User, prev UserModel) UserModel {
+	return UserModel{
 		ID:       types.Int64Value(user.ID),
 		Created:  types.StringValue(user.Created),
 		Username: types.StringValue(user.Username),
@@ -141,11 +63,11 @@ func convertResponsePayloadToUserModel(user *models.User, password types.String)
 		External: types.BoolValue(user.External),
 		Alert:    types.BoolValue(user.Alert),
 		// Password is not returned by the API so we use previously set password
-		Password: password,
+		Password: prev.Password,
 	}
 }
 
-func convertUserModelToUserRequest(user userModel) *models.UserRequest {
+func convertUserModelToUserRequest(user UserModel) *models.UserRequest {
 	return &models.UserRequest{
 		Username: user.Username.ValueString(),
 		Name:     user.Name.ValueString(),
@@ -157,7 +79,7 @@ func convertUserModelToUserRequest(user userModel) *models.UserRequest {
 	}
 }
 
-func convertUserModelToUserPutRequest(user userModel) *models.UserPutRequest {
+func convertUserModelToUserPutRequest(user UserModel) *models.UserPutRequest {
 	return &models.UserPutRequest{
 		Username: user.Username.ValueString(),
 		Name:     user.Name.ValueString(),
@@ -169,7 +91,7 @@ func convertUserModelToUserPutRequest(user userModel) *models.UserPutRequest {
 
 func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan userModel
+	var plan UserModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -190,7 +112,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	plan = convertResponsePayloadToUserModel(response.Payload, plan.Password)
+	plan = convertResponsePayloadToUserModel(response.Payload, plan)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
@@ -203,7 +125,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 // Read refreshes the Terraform state with the latest data.
 func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state userModel
+	var state UserModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -221,7 +143,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	// Overwrite with refreshed state
-	state = convertResponsePayloadToUserModel(response.Payload, state.Password)
+	state = convertResponsePayloadToUserModel(response.Payload, state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -234,7 +156,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan userModel
+	var plan UserModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -278,7 +200,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Update resource state with updated user
-	plan = convertResponsePayloadToUserModel(response.Payload, plan.Password)
+	plan = convertResponsePayloadToUserModel(response.Payload, plan)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -289,7 +211,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state userModel
+	var state UserModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

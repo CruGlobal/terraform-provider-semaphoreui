@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project_environment Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project Environment resource.
-  A project environment provides a list of extra and environment variables that can be used in a project's templates.'
+  The project environment (variable group) resource allows you to manage a list of extra and environment variables that can be used in a project's templates.
 ---
 
 # semaphoreui_project_environment (Resource)
 
-Provides a SemaphoreUI Project Environment resource.
-
-A project environment provides a list of extra and environment variables that can be used in a project's templates.'
+The project environment (variable group) resource allows you to manage a list of extra and environment variables that can be used in a project's templates.
 
 ## Example Usage
 
@@ -31,7 +28,7 @@ resource "semaphoreui_project_environment" "environment" {
   }
 
   # environment variables
-  environment_variables = {
+  environment = {
     KEY1 = "value1"
     KEY2 = "value2"
   }
@@ -57,15 +54,13 @@ resource "semaphoreui_project_environment" "environment" {
 ### Required
 
 - `name` (String) The display name of the environment.
-- `project_id` (Number) The project ID that the environment belongs to.
+- `project_id` (Number) (ForceNew) The project ID that the environment belongs to.
 
 ### Optional
 
 - `environment` (Map of String) Environment variables.
 - `secrets` (Attributes List) Secret variables of either `"var"` or `"env"` type. The `value` is encrypted and will be empty if imported. (see [below for nested schema](#nestedatt--secrets))
-- `variables` (Map of String) Extra variables.
-
-Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).
+- `variables` (Map of String) Extra variables. Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).
 
 ### Read-Only
 
@@ -77,7 +72,7 @@ Passed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as 
 Required:
 
 - `name` (String) The variable name.
-- `type` (String) The variable type. Either `"env"` or `"var"`.
+- `type` (String) The variable type. Value must be one of : `env`, `var`.
 - `value` (String, Sensitive) The variable value.
 
 Read-Only:

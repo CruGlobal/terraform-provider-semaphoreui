@@ -32,7 +32,7 @@ tasks:
   client:
     desc: Generate the SemaphoreUI API client code
     cmds:
-      - swagger generate client -f https://raw.githubusercontent.com/semaphoreui/semaphore/refs/heads/develop/api-docs.yml -t semaphoreui -A SemaphoreUI --default-scheme=https
+      - swagger generate client -f https://raw.githubusercontent.com/semaphoreui/semaphore/refs/tags/v2.11.2/api-docs.yml -t semaphoreui -A SemaphoreUI --default-scheme=https
 
   test:
     desc: Run unit tests

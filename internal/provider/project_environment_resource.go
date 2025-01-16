@@ -4,13 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"sort"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
@@ -54,99 +49,11 @@ func (r *projectEnvironmentResource) Metadata(_ context.Context, req resource.Me
 	resp.TypeName = req.ProviderTypeName + "_project_environment"
 }
 
-type projectEnvironmentModel struct {
-	ID          types.Int64        `tfsdk:"id"`
-	ProjectID   types.Int64        `tfsdk:"project_id"`
-	Name        types.String       `tfsdk:"name"`
-	Variables   *map[string]string `tfsdk:"variables"`
-	Environment *map[string]string `tfsdk:"environment"`
-	Secrets     types.List         `tfsdk:"secrets"`
-}
-
-func (projectEnvironmentModel) GetSchema() schema.Schema {
-	return schema.Schema{
-		MarkdownDescription: `Provides a SemaphoreUI Project Environment resource.
-
-A project environment provides a list of extra and environment variables that can be used in a project's templates.'`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The environment ID.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "The project ID that the environment belongs to.",
-				Required:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the environment.",
-				Required:            true,
-			},
-			"variables": schema.MapAttribute{
-				MarkdownDescription: "Extra variables.\n\nPassed to Ansible as extra variables (`--extra-vars`) and Terraform/OpenTofu as variables (`-var`).",
-				ElementType:         types.StringType,
-				Optional:            true,
-			},
-			"environment": schema.MapAttribute{
-				MarkdownDescription: "Environment variables.",
-				ElementType:         types.StringType,
-				Optional:            true,
-			},
-			"secrets": schema.ListNestedAttribute{
-				MarkdownDescription: "Secret variables of either `\"var\"` or `\"env\"` type. The `value` is encrypted and will be empty if imported.",
-				Optional:            true,
-				NestedObject:        projectEnvironmentSecretModel{}.GetSchema(),
-			},
-		},
-	}
-}
-
-type projectEnvironmentSecretModel struct {
-	ID    types.Int64  `tfsdk:"id"`
-	Type  types.String `tfsdk:"type"`
-	Name  types.String `tfsdk:"name"`
-	Value types.String `tfsdk:"value"`
-}
-
-func (projectEnvironmentSecretModel) GetSchema() schema.NestedAttributeObject {
-	return schema.NestedAttributeObject{
-		PlanModifiers: []planmodifier.Object{
-			objectplanmodifier.UseStateForUnknown(),
-		},
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The variable ID.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
-			},
-			"type": schema.StringAttribute{
-				MarkdownDescription: "The variable type. Either `\"env\"` or `\"var\"`.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("env", "var"),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The variable name.",
-				Required:            true,
-			},
-			"value": schema.StringAttribute{
-				MarkdownDescription: "The variable value.",
-				Required:            true,
-				Sensitive:           true,
-			},
-		},
-	}
-}
-
-func (model projectEnvironmentModel) SecretValue(ctx context.Context, name string, varType string) types.String {
+func (model ProjectEnvironmentModel) SecretValue(ctx context.Context, name string, varType string) types.String {
 	if model.Secrets.IsNull() || model.Secrets.IsUnknown() {
 		return types.StringValue("")
 	}
-	var secrets []projectEnvironmentSecretModel
+	var secrets []ProjectEnvironmentSecretModel
 	diags := model.Secrets.ElementsAs(ctx, &secrets, false)
 	if diags.HasError() {
 		return types.StringValue("")
@@ -159,12 +66,12 @@ func (model projectEnvironmentModel) SecretValue(ctx context.Context, name strin
 	return types.StringValue("")
 }
 
-func (model projectEnvironmentModel) Secret(ctx context.Context, id types.Int64) *projectEnvironmentSecretModel {
+func (model ProjectEnvironmentModel) Secret(ctx context.Context, id types.Int64) *ProjectEnvironmentSecretModel {
 	if model.Secrets.IsNull() || model.Secrets.IsUnknown() {
 		return nil
 	}
 
-	var secrets []projectEnvironmentSecretModel
+	var secrets []ProjectEnvironmentSecretModel
 	diags := model.Secrets.ElementsAs(ctx, &secrets, false)
 	if diags.HasError() {
 		return nil
@@ -178,11 +85,11 @@ func (model projectEnvironmentModel) Secret(ctx context.Context, id types.Int64)
 	return nil
 }
 
-func (r *projectEnvironmentResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = projectEnvironmentModel{}.GetSchema()
+func (r *projectEnvironmentResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectEnvironmentSchema().GetResource(ctx)
 }
 
-func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env projectEnvironmentModel, prev *projectEnvironmentModel) *models.EnvironmentRequest {
+func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env ProjectEnvironmentModel, prev *ProjectEnvironmentModel) *models.EnvironmentRequest {
 	model := models.EnvironmentRequest{
 		ProjectID: env.ProjectID.ValueInt64(),
 		Name:      env.Name.ValueString(),
@@ -206,14 +113,14 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 	}
 
 	var secrets []*models.EnvironmentSecretRequest
-	var envSecrets, prevSecrets []projectEnvironmentSecretModel
+	var envSecrets, prevSecrets []ProjectEnvironmentSecretModel
 	if env.Secrets.IsNull() || env.Secrets.IsUnknown() {
-		envSecrets = []projectEnvironmentSecretModel{}
+		envSecrets = []ProjectEnvironmentSecretModel{}
 	} else {
 		env.Secrets.ElementsAs(ctx, &envSecrets, false)
 	}
 	if prev.Secrets.IsUnknown() || prev.Secrets.IsNull() {
-		prevSecrets = []projectEnvironmentSecretModel{}
+		prevSecrets = []ProjectEnvironmentSecretModel{}
 	} else {
 		prev.Secrets.ElementsAs(ctx, &prevSecrets, false)
 	}
@@ -270,8 +177,8 @@ func (a ByEnvironmentID) Len() int           { return len(a) }
 func (a ByEnvironmentID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByEnvironmentID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
-func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, environment *models.Environment, prev *projectEnvironmentModel) projectEnvironmentModel {
-	model := projectEnvironmentModel{
+func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, environment *models.Environment, prev *ProjectEnvironmentModel) ProjectEnvironmentModel {
+	model := ProjectEnvironmentModel{
 		ID:        types.Int64Value(environment.ID),
 		ProjectID: types.Int64Value(environment.ProjectID),
 		Name:      types.StringValue(environment.Name),
@@ -293,9 +200,9 @@ func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, en
 
 	sort.Sort(ByEnvironmentID(environment.Secrets))
 
-	var secrets []projectEnvironmentSecretModel
+	var secrets []ProjectEnvironmentSecretModel
 	for _, secret := range environment.Secrets {
-		modelSecret := projectEnvironmentSecretModel{
+		modelSecret := ProjectEnvironmentSecretModel{
 			ID:   types.Int64Value(secret.ID),
 			Type: types.StringValue(secret.Type),
 			Name: types.StringValue(secret.Name),
@@ -313,7 +220,14 @@ func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, en
 		prev.Secrets.ElementsAs(ctx, &secrets, false)
 	}
 
-	envSecrets, _ := types.ListValueFrom(ctx, projectEnvironmentSecretModel{}.GetSchema().Type(), secrets)
+	envSecrets, _ := types.ListValueFrom(ctx, types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":    types.Int64Type,
+			"type":  types.StringType,
+			"name":  types.StringType,
+			"value": types.StringType,
+		},
+	}, secrets)
 
 	model.Secrets = envSecrets
 
@@ -322,7 +236,7 @@ func convertEnvironmentResponseToProjectEnvironmentModel(ctx context.Context, en
 
 func (r *projectEnvironmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectEnvironmentModel
+	var plan ProjectEnvironmentModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -331,7 +245,7 @@ func (r *projectEnvironmentResource) Create(ctx context.Context, req resource.Cr
 	//Create new projectEnvironment
 	response, err := r.client.Project.PostProjectProjectIDEnvironment(&project.PostProjectProjectIDEnvironmentParams{
 		ProjectID:   plan.ProjectID.ValueInt64(),
-		Environment: convertProjectEnvironmentModelToEnvironmentRequest(ctx, plan, &projectEnvironmentModel{}),
+		Environment: convertProjectEnvironmentModelToEnvironmentRequest(ctx, plan, &ProjectEnvironmentModel{}),
 	}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -364,7 +278,7 @@ func (r *projectEnvironmentResource) Create(ctx context.Context, req resource.Cr
 // Read refreshes the Terraform state with the latest data.
 func (r *projectEnvironmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectEnvironmentModel
+	var state ProjectEnvironmentModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -393,7 +307,7 @@ func (r *projectEnvironmentResource) Read(ctx context.Context, req resource.Read
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectEnvironmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan, state projectEnvironmentModel
+	var plan, state ProjectEnvironmentModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -434,7 +348,7 @@ func (r *projectEnvironmentResource) Update(ctx context.Context, req resource.Up
 
 func (r *projectEnvironmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectEnvironmentModel
+	var state ProjectEnvironmentModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -475,7 +389,7 @@ func (r *projectEnvironmentResource) ImportState(ctx context.Context, req resour
 		)
 		return
 	}
-	model := convertEnvironmentResponseToProjectEnvironmentModel(ctx, response.Payload, &projectEnvironmentModel{})
+	model := convertEnvironmentResponseToProjectEnvironmentModel(ctx, response.Payload, &ProjectEnvironmentModel{})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 	if resp.Diagnostics.HasError() {

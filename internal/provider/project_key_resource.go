@@ -6,9 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
@@ -52,119 +49,21 @@ func (r *projectKeyResource) Metadata(_ context.Context, req resource.MetadataRe
 	resp.TypeName = req.ProviderTypeName + "_project_key"
 }
 
-const (
-	KeyLoginPassword string = "login_password"
-	KeySSH           string = "ssh"
-	KeyNone          string = "none"
-)
-
-type projectKeyModel struct {
-	ID            types.Int64              `tfsdk:"id"`
-	ProjectID     types.Int64              `tfsdk:"project_id"`
-	Name          types.String             `tfsdk:"name"`
-	LoginPassword *projectKeyLoginPassword `tfsdk:"login_password"`
-	SSH           *projectKeySSH           `tfsdk:"ssh"`
-	None          *projectKeyNone          `tfsdk:"none"`
-}
-
-type projectKeyLoginPassword struct {
-	Login    types.String `tfsdk:"login"`
-	Password types.String `tfsdk:"password"`
-}
-
-type projectKeySSH struct {
-	Login      types.String `tfsdk:"login"`
-	Passphrase types.String `tfsdk:"passphrase"`
-	PrivateKey types.String `tfsdk:"private_key"`
-}
-
-type projectKeyNone struct{}
-
-func (model *projectKeyModel) Type() types.String {
-	if model.LoginPassword != nil {
-		return types.StringValue(KeyLoginPassword)
-	} else if model.SSH != nil {
-		return types.StringValue(KeySSH)
-	} else if model.None != nil {
-		return types.StringValue(KeyNone)
-	}
-	return types.StringUnknown()
-}
-
-func (r *projectKeyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `Provides a SemaphoreUI Project Key resource.
-
-A project Key is used to define the credentials used through out a project. Credentials can be Username/Password, SSH key or None. Project keys are used throughout SemaphoreUI, including Inventories, Repositories, Environments and Templates. When a resource doesn't need credentials, the None Key is used.'`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The Key ID",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "The project ID that the key belongs to.",
-				Required:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the key.",
-				Required:            true,
-			},
-			KeyLoginPassword: schema.SingleNestedAttribute{
-				MarkdownDescription: "A login password key.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"login": schema.StringAttribute{
-						MarkdownDescription: "The login username.",
-						Optional:            true,
-					},
-					"password": schema.StringAttribute{
-						MarkdownDescription: "The login password.",
-						Required:            true,
-						Sensitive:           true,
-					},
-				},
-			},
-			KeySSH: schema.SingleNestedAttribute{
-				MarkdownDescription: "A SSH key.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"login": schema.StringAttribute{
-						MarkdownDescription: "The login username.",
-						Optional:            true,
-					},
-					"passphrase": schema.StringAttribute{
-						MarkdownDescription: "The SSH Key passphrase.",
-						Optional:            true,
-						Sensitive:           true,
-					},
-					"private_key": schema.StringAttribute{
-						MarkdownDescription: "The SSH private key.",
-						Required:            true,
-						Sensitive:           true,
-					},
-				},
-			},
-			KeyNone: schema.SingleNestedAttribute{
-				MarkdownDescription: "The special None key.",
-				Optional:            true,
-			},
-		},
-	}
+func (r *projectKeyResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectKeySchema().GetResource(ctx)
 }
 
 func (r *projectKeyResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.ExactlyOneOf(
-			path.MatchRoot(KeyLoginPassword),
-			path.MatchRoot(KeySSH),
-			path.MatchRoot(KeyNone),
+			path.MatchRoot(ProjectKeyTypeLoginPassword),
+			path.MatchRoot(ProjectKeyTypeSSH),
+			path.MatchRoot(ProjectKeyTypeNone),
 		),
 	}
 }
 
-func convertProjectKeyModelToAccessKeyRequest(key projectKeyModel) *models.AccessKeyRequest {
+func convertProjectKeyModelToAccessKeyRequest(key ProjectKeyModel) *models.AccessKeyRequest {
 	model := models.AccessKeyRequest{
 		ProjectID: key.ProjectID.ValueInt64(),
 		Name:      key.Name.ValueString(),
@@ -173,15 +72,15 @@ func convertProjectKeyModelToAccessKeyRequest(key projectKeyModel) *models.Acces
 		model.ID = key.ID.ValueInt64()
 	}
 	if key.None != nil {
-		model.Type = KeyNone
+		model.Type = ProjectKeyTypeNone
 	} else if key.LoginPassword != nil {
-		model.Type = KeyLoginPassword
+		model.Type = ProjectKeyTypeLoginPassword
 		model.LoginPassword = &models.AccessKeyRequestLoginPassword{
 			Login:    key.LoginPassword.Login.ValueString(),
 			Password: key.LoginPassword.Password.ValueString(),
 		}
 	} else if key.SSH != nil {
-		model.Type = KeySSH
+		model.Type = ProjectKeyTypeSSH
 		model.SSH = &models.AccessKeyRequestSSH{
 			Login:      key.SSH.Login.ValueString(),
 			Passphrase: key.SSH.Passphrase.ValueString(),
@@ -192,8 +91,8 @@ func convertProjectKeyModelToAccessKeyRequest(key projectKeyModel) *models.Acces
 	return &model
 }
 
-func convertAccessKeyResponseToProjectKeyModel(key *models.AccessKey, prev *projectKeyModel) projectKeyModel {
-	model := projectKeyModel{
+func convertAccessKeyResponseToProjectKeyModel(key *models.AccessKey, prev *ProjectKeyModel) ProjectKeyModel {
+	model := ProjectKeyModel{
 		ID:        types.Int64Value(key.ID),
 		ProjectID: types.Int64Value(key.ProjectID),
 		Name:      types.StringValue(key.Name),
@@ -201,18 +100,18 @@ func convertAccessKeyResponseToProjectKeyModel(key *models.AccessKey, prev *proj
 
 	// SemaphoreUI API never returns secret value, so we use the ones from the previous state
 	switch key.Type {
-	case KeyNone:
-		model.None = &projectKeyNone{}
-	case KeyLoginPassword:
+	case ProjectKeyTypeNone:
+		model.None = &ProjectKeyNone{}
+	case ProjectKeyTypeLoginPassword:
 		model.LoginPassword = prev.LoginPassword
-	case KeySSH:
+	case ProjectKeyTypeSSH:
 		model.SSH = prev.SSH
 	}
 
 	return model
 }
 
-func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64, keyId types.Int64, prev *projectKeyModel) (*projectKeyModel, error) {
+func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64, keyId types.Int64, prev *ProjectKeyModel) (*ProjectKeyModel, error) {
 	payload, err := r.client.Project.GetProjectProjectIDKeys(&project.GetProjectProjectIDKeysParams{
 		ProjectID: projectId.ValueInt64(),
 	}, nil)
@@ -222,17 +121,17 @@ func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64,
 
 	for _, key := range payload.Payload {
 		if key.ID == keyId.ValueInt64() {
-			model := projectKeyModel{
+			model := ProjectKeyModel{
 				ProjectID: projectId,
 				ID:        keyId,
 				Name:      types.StringValue(key.Name),
 			}
 			switch key.Type {
-			case KeyNone:
-				model.None = &projectKeyNone{}
-			case KeyLoginPassword:
+			case ProjectKeyTypeNone:
+				model.None = &ProjectKeyNone{}
+			case ProjectKeyTypeLoginPassword:
 				model.LoginPassword = prev.LoginPassword
-			case KeySSH:
+			case ProjectKeyTypeSSH:
 				model.SSH = prev.SSH
 			}
 			return &model, nil
@@ -243,7 +142,7 @@ func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64,
 
 func (r *projectKeyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectKeyModel
+	var plan ProjectKeyModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -274,7 +173,7 @@ func (r *projectKeyResource) Create(ctx context.Context, req resource.CreateRequ
 // Read refreshes the Terraform state with the latest data.
 func (r *projectKeyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectKeyModel
+	var state ProjectKeyModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -301,7 +200,7 @@ func (r *projectKeyResource) Read(ctx context.Context, req resource.ReadRequest,
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan and state
-	var plan, state projectKeyModel
+	var plan, state ProjectKeyModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -317,7 +216,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 	} else {
 		// Key type has not changed, so we need to check if individual fields have changed
 		switch plan.Type().ValueString() {
-		case KeyLoginPassword:
+		case ProjectKeyTypeLoginPassword:
 			if !plan.LoginPassword.Login.Equal(state.LoginPassword.Login) ||
 				!plan.LoginPassword.Password.Equal(state.LoginPassword.Password) ||
 				!plan.Name.Equal(state.Name) {
@@ -326,7 +225,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 				// Use empty struct when secrets haven't changed
 				key.LoginPassword = &models.AccessKeyRequestLoginPassword{}
 			}
-		case KeySSH:
+		case ProjectKeyTypeSSH:
 			if !plan.SSH.Login.Equal(state.SSH.Login) ||
 				!plan.SSH.Passphrase.Equal(state.SSH.Passphrase) ||
 				!plan.SSH.PrivateKey.Equal(state.SSH.PrivateKey) ||
@@ -336,7 +235,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 				// Use empty struct when secrets haven't changed
 				key.SSH = &models.AccessKeyRequestSSH{}
 			}
-		case KeyNone:
+		case ProjectKeyTypeNone:
 			// type None has no secrets to update, but if Name change, we need to update it
 			if !plan.Name.Equal(state.Name) {
 				key.OverrideSecret = true
@@ -347,13 +246,13 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 		// For some reason, the API will only update access keys when all the fields are set
 		// So we need to set the other fields to empty strings
 		switch key.Type {
-		case KeyLoginPassword:
+		case ProjectKeyTypeLoginPassword:
 			key.SSH = &models.AccessKeyRequestSSH{
 				Login:      "",
 				Passphrase: "",
 				PrivateKey: "",
 			}
-		case KeySSH:
+		case ProjectKeyTypeSSH:
 			key.LoginPassword = &models.AccessKeyRequestLoginPassword{
 				Login:    "",
 				Password: "",
@@ -394,7 +293,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 
 func (r *projectKeyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectKeyModel
+	var state ProjectKeyModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -426,14 +325,14 @@ func (r *projectKeyResource) ImportState(ctx context.Context, req resource.Impor
 	}
 
 	// Get the project key from the client filling required secrets with empty strings
-	model, err := r.getProjectKeyModelFromClient(types.Int64Value(fields["project"]), types.Int64Value(fields["key"]), &projectKeyModel{
-		LoginPassword: &projectKeyLoginPassword{
+	model, err := r.getProjectKeyModelFromClient(types.Int64Value(fields["project"]), types.Int64Value(fields["key"]), &ProjectKeyModel{
+		LoginPassword: &ProjectKeyLoginPassword{
 			Password: types.StringValue(""),
 		},
-		SSH: &projectKeySSH{
+		SSH: &ProjectKeySSH{
 			PrivateKey: types.StringValue(""),
 		},
-		None: &projectKeyNone{},
+		None: &ProjectKeyNone{},
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(

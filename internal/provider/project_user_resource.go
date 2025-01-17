@@ -3,10 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
@@ -48,49 +45,11 @@ func (r *projectUserResource) Metadata(_ context.Context, req resource.MetadataR
 	resp.TypeName = req.ProviderTypeName + "_project_user"
 }
 
-type projectUserModel struct {
-	ProjectID types.Int64  `tfsdk:"project_id"`
-	UserID    types.Int64  `tfsdk:"user_id"`
-	Username  types.String `tfsdk:"username"`
-	Name      types.String `tfsdk:"name"`
-	Role      types.String `tfsdk:"role"`
+func (r *projectUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectUserSchema().GetResource(ctx)
 }
 
-func (r *projectUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `
-Provides a SemaphoreUI Project User resource.
-
-This resource is used to manages a user's role in a project.`,
-		Attributes: map[string]schema.Attribute{
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "ID of the project.",
-				Required:            true,
-			},
-			"user_id": schema.Int64Attribute{
-				MarkdownDescription: "ID of the user.",
-				Required:            true,
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "Role of the user in the project. Valid values are `\"owner\"`, `\"manager\"`, `\"task_runner\"` and `\"guest\"`.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("owner", "manager", "task_runner", "guest"),
-				},
-			},
-			"username": schema.StringAttribute{
-				MarkdownDescription: "Username of the user.",
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the user.",
-				Computed:            true,
-			},
-		},
-	}
-}
-
-func (r *projectUserResource) getProjectUserModelFromAPI(projectId types.Int64, userId types.Int64) (*projectUserModel, error) {
+func (r *projectUserResource) getProjectUserModelFromAPI(projectId types.Int64, userId types.Int64) (*ProjectUserModel, error) {
 	payload, err := r.client.Project.GetProjectProjectIDUsers(&project.GetProjectProjectIDUsersParams{ProjectID: projectId.ValueInt64()}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not read Users for project ID %d: %s", projectId.ValueInt64(), err.Error())
@@ -98,12 +57,12 @@ func (r *projectUserResource) getProjectUserModelFromAPI(projectId types.Int64, 
 
 	for _, projectUser := range payload.Payload {
 		if projectUser.ID == userId.ValueInt64() {
-			return &projectUserModel{
+			return &ProjectUserModel{
 				ProjectID: projectId,
 				UserID:    userId,
+				Role:      types.StringValue(projectUser.Role),
 				Username:  types.StringValue(projectUser.Username),
 				Name:      types.StringValue(projectUser.Name),
-				Role:      types.StringValue(projectUser.Role),
 			}, nil
 		}
 	}
@@ -112,9 +71,8 @@ func (r *projectUserResource) getProjectUserModelFromAPI(projectId types.Int64, 
 
 func (r *projectUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectUserModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
+	var plan ProjectUserModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -147,8 +105,7 @@ func (r *projectUserResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Set state to fully populated data
-	diags = resp.State.Set(ctx, &user)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &user)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -157,9 +114,8 @@ func (r *projectUserResource) Create(ctx context.Context, req resource.CreateReq
 // Read refreshes the Terraform state with the latest data.
 func (r *projectUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectUserModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	var state ProjectUserModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -175,8 +131,7 @@ func (r *projectUserResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Set refreshed state
-	diags = resp.State.Set(ctx, &user)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &user)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -185,9 +140,8 @@ func (r *projectUserResource) Read(ctx context.Context, req resource.ReadRequest
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectUserModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
+	var plan ProjectUserModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -220,8 +174,7 @@ func (r *projectUserResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Update resource state with updated projectUser
-	diags = resp.State.Set(ctx, &user)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &user)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -229,9 +182,8 @@ func (r *projectUserResource) Update(ctx context.Context, req resource.UpdateReq
 
 func (r *projectUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectUserModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	var state ProjectUserModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -269,8 +221,7 @@ func (r *projectUserResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	diags := resp.State.Set(ctx, &user)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &user)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

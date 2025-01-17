@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project_key Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project Key resource.
-  A project Key is used to define the credentials used through out a project. Credentials can be Username/Password, SSH key or None. Project keys are used throughout SemaphoreUI, including Inventories, Repositories, Environments and Templates. When a resource doesn't need credentials, the None Key is used.'
+  The project key resource allows you to define the credentials used throughout a project. Credentials can be Username/Password, SSH key or None. Project keys are used throughout SemaphoreUI, including Inventories, Repositories, Environments and Templates. When a resource doesn't need credentials, the None Key is used.
 ---
 
 # semaphoreui_project_key (Resource)
 
-Provides a SemaphoreUI Project Key resource.
-
-A project Key is used to define the credentials used through out a project. Credentials can be Username/Password, SSH key or None. Project keys are used throughout SemaphoreUI, including Inventories, Repositories, Environments and Templates. When a resource doesn't need credentials, the None Key is used.'
+The project key resource allows you to define the credentials used throughout a project. Credentials can be Username/Password, SSH key or None. Project keys are used throughout SemaphoreUI, including Inventories, Repositories, Environments and Templates. When a resource doesn't need credentials, the None Key is used.
 
 ## Example Usage
 
@@ -51,7 +48,7 @@ resource "semaphoreui_project_key" "none" {
 ### Required
 
 - `name` (String) The display name of the key.
-- `project_id` (Number) The project ID that the key belongs to.
+- `project_id` (Number) (ForceNew) The project ID that the key belongs to.
 
 ### Optional
 
@@ -61,7 +58,7 @@ resource "semaphoreui_project_key" "none" {
 
 ### Read-Only
 
-- `id` (Number) The Key ID
+- `id` (Number) The key ID.
 
 <a id="nestedatt--login_password"></a>
 ### Nested Schema for `login_password`
@@ -82,14 +79,11 @@ Optional:
 <a id="nestedatt--ssh"></a>
 ### Nested Schema for `ssh`
 
-Required:
-
-- `private_key` (String, Sensitive) The SSH private key.
-
 Optional:
 
 - `login` (String) The login username.
 - `passphrase` (String, Sensitive) The SSH Key passphrase.
+- `private_key` (String, Sensitive) The SSH private key.
 
 ## Import
 

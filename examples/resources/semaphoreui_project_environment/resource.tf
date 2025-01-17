@@ -13,7 +13,7 @@ resource "semaphoreui_project_environment" "environment" {
   }
 
   # environment variables
-  environment_variables = {
+  environment = {
     KEY1 = "value1"
     KEY2 = "value2"
   }

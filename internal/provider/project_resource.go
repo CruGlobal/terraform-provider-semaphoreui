@@ -3,16 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
@@ -56,71 +48,12 @@ func (r *projectResource) Metadata(_ context.Context, req resource.MetadataReque
 	resp.TypeName = req.ProviderTypeName + "_project"
 }
 
-type projectModel struct {
-	ID               types.Int64  `tfsdk:"id"`
-	Created          types.String `tfsdk:"created"`
-	Name             types.String `tfsdk:"name"`
-	Alert            types.Bool   `tfsdk:"alert"`
-	AlertChat        types.String `tfsdk:"alert_chat"`
-	MaxParallelTasks types.Int64  `tfsdk:"max_parallel_tasks"`
-	//Type             types.String `tfsdk:"type"`
-}
-
 // Schema defines the schema for the resource.
-func (r *projectResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `
-Provides a SemaphoreUI Project resource.
-
-A project is a place to separate management activity. All SemaphoreUI activities occur within the context of a project.`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "Project ID.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
-			},
-			"created": schema.StringAttribute{
-				MarkdownDescription: "Creation date of the project.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Project name.",
-				Required:            true,
-			},
-			"alert": schema.BoolAttribute{
-				MarkdownDescription: "Allow alerts for this project. Default `false`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				Validators:          []validator.Bool{},
-			},
-			"alert_chat": schema.StringAttribute{
-				MarkdownDescription: "Telegram chat ID.",
-				Optional:            true,
-			},
-			"max_parallel_tasks": schema.Int64Attribute{
-				MarkdownDescription: "Maximum number of parallel tasks, `0` for unlimited. Default `0`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             int64default.StaticInt64(0),
-				Validators: []validator.Int64{
-					int64validator.AtLeast(0),
-				},
-			},
-			//"type": schema.StringAttribute{
-			//	MarkdownDescription: "Project type (currently unused). Default `\"\"`.",
-			//	Optional:            true,
-			//},
-		},
-	}
+func (r *projectResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectSchema().GetResource(ctx)
 }
 
-func convertPayloadToProjectModel(payload *models.Project) projectModel {
+func convertProjectResponseToProjectModel(payload *models.Project) ProjectModel {
 	var alertChat types.String
 	if payload.AlertChat == "" {
 		alertChat = types.StringNull()
@@ -134,7 +67,7 @@ func convertPayloadToProjectModel(payload *models.Project) projectModel {
 	//} else {
 	//	projType = types.StringValue(payload.Type)
 	//}
-	return projectModel{
+	return ProjectModel{
 		ID:               types.Int64Value(payload.ID),
 		Name:             types.StringValue(payload.Name),
 		Alert:            types.BoolValue(payload.Alert),
@@ -147,7 +80,7 @@ func convertPayloadToProjectModel(payload *models.Project) projectModel {
 
 func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectModel
+	var plan ProjectModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -172,7 +105,7 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan = convertPayloadToProjectModel(response.Payload)
+	plan = convertProjectResponseToProjectModel(response.Payload)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
@@ -184,7 +117,7 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 
 func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectModel
+	var state ProjectModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -201,7 +134,7 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Overwrite with refreshed state
-	state = convertPayloadToProjectModel(response.Payload)
+	state = convertProjectResponseToProjectModel(response.Payload)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -213,7 +146,7 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectModel
+	var plan ProjectModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -250,7 +183,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Update resource state with updated project
-	plan = convertPayloadToProjectModel(response.Payload)
+	plan = convertProjectResponseToProjectModel(response.Payload)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -261,7 +194,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 
 func (r *projectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectModel
+	var state ProjectModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

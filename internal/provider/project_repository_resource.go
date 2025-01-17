@@ -3,9 +3,6 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
@@ -48,54 +45,11 @@ func (r *projectRepositoryResource) Metadata(_ context.Context, req resource.Met
 	resp.TypeName = req.ProviderTypeName + "_project_repository"
 }
 
-type projectRepositoryModel struct {
-	ID        types.Int64  `tfsdk:"id"`
-	ProjectID types.Int64  `tfsdk:"project_id"`
-	Name      types.String `tfsdk:"name"`
-	Url       types.String `tfsdk:"url"`
-	Branch    types.String `tfsdk:"branch"`
-	SSHKeyID  types.Int64  `tfsdk:"ssh_key_id"`
+func (r *projectRepositoryResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectRepositorySchema().GetResource(ctx)
 }
 
-func (r *projectRepositoryResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `Provides a SemaphoreUI Project Repository resource.
-
-SemaphoreUI currently supports only Git repositories, including GitHub HTTP/S protocols and local paths.`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The repository ID.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "The project ID that the repository belongs to.",
-				Required:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the repository.",
-				Required:            true,
-			},
-			"url": schema.StringAttribute{
-				MarkdownDescription: "The URI or path of the Git repository. SemaphoreUI supports `ssh`, `http`, `https`, `file` and `git` URI schemes as well as absolute paths.",
-				Required:            true,
-			},
-			"branch": schema.StringAttribute{
-				MarkdownDescription: "The branch of the repository to use. Use an empty string for path based repositories.",
-				Required:            true,
-			},
-			"ssh_key_id": schema.Int64Attribute{
-				MarkdownDescription: `The Project Key ID to use for accessing the Git repository.
-
-This attribute is required for all repositories in SemaphoreUI. You should set it to the ID of a Key of type ` + "`none`" + ` if the repository doesn't require credentials.`,
-				Required: true,
-			},
-		},
-	}
-}
-
-func convertProjectRepositoryModelToRepositoryRequest(repo projectRepositoryModel) *models.RepositoryRequest {
+func convertProjectRepositoryModelToRepositoryRequest(repo ProjectRepositoryModel) *models.RepositoryRequest {
 	model := models.RepositoryRequest{
 		ProjectID: repo.ProjectID.ValueInt64(),
 		Name:      repo.Name.ValueString(),
@@ -109,8 +63,8 @@ func convertProjectRepositoryModelToRepositoryRequest(repo projectRepositoryMode
 	return &model
 }
 
-func convertRepositoryResponseToProjectRepositoryModel(request *models.Repository) projectRepositoryModel {
-	return projectRepositoryModel{
+func convertRepositoryResponseToProjectRepositoryModel(request *models.Repository) ProjectRepositoryModel {
+	return ProjectRepositoryModel{
 		ID:        types.Int64Value(request.ID),
 		ProjectID: types.Int64Value(request.ProjectID),
 		Name:      types.StringValue(request.Name),
@@ -122,7 +76,7 @@ func convertRepositoryResponseToProjectRepositoryModel(request *models.Repositor
 
 func (r *projectRepositoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectRepositoryModel
+	var plan ProjectRepositoryModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -151,7 +105,7 @@ func (r *projectRepositoryResource) Create(ctx context.Context, req resource.Cre
 // Read refreshes the Terraform state with the latest data.
 func (r *projectRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectRepositoryModel
+	var state ProjectRepositoryModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -180,7 +134,7 @@ func (r *projectRepositoryResource) Read(ctx context.Context, req resource.ReadR
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectRepositoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectRepositoryModel
+	var plan ProjectRepositoryModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -220,7 +174,7 @@ func (r *projectRepositoryResource) Update(ctx context.Context, req resource.Upd
 
 func (r *projectRepositoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectRepositoryModel
+	var state ProjectRepositoryModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return

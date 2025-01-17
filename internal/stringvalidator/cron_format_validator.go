@@ -16,7 +16,7 @@ func (v CronFormatValidator) Description(ctx context.Context) string {
 }
 
 func (v CronFormatValidator) MarkdownDescription(ctx context.Context) string {
-	return ""
+	return "Must be valid [Cron Expression](https://github.com/adhocore/gronx?tab=readme-ov-file#cron-expression)."
 }
 
 func (v CronFormatValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {

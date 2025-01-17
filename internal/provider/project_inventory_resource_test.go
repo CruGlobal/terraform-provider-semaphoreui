@@ -69,7 +69,7 @@ resource "semaphoreui_project_inventory" "test" {
 }`, testAccProjectInventoryEmptyConfig(nameSuffix, ""), nameSuffix, extras)
 }
 
-func testAccProjectInventoryStaticConfig(nameSuffix string, become bool) string {
+func testAccProjectProjectInventoryStaticConfig(nameSuffix string, become bool) string {
 	return testAccProjectInventoryConfig(nameSuffix, fmt.Sprintf(`
   static = {
     inventory = <<-EOT
@@ -82,7 +82,7 @@ func testAccProjectInventoryStaticConfig(nameSuffix string, become bool) string 
 `, become))
 }
 
-func testAccProjectInventoryStaticYamlConfig(nameSuffix string, become bool) string {
+func testAccProjectProjectInventoryStaticYamlConfig(nameSuffix string, become bool) string {
 	return testAccProjectInventoryConfig(nameSuffix, fmt.Sprintf(`
   static_yaml = {
     inventory = yamlencode({
@@ -96,7 +96,7 @@ func testAccProjectInventoryStaticYamlConfig(nameSuffix string, become bool) str
 `, become))
 }
 
-func testAccProjectInventoryFileConfig(nameSuffix string, path string) string {
+func testAccProjectProjectInventoryFileConfig(nameSuffix string, path string) string {
 	return testAccProjectInventoryConfig(nameSuffix, fmt.Sprintf(`
   file = {
     path = "%[1]s"
@@ -104,7 +104,7 @@ func testAccProjectInventoryFileConfig(nameSuffix string, path string) string {
 `, path))
 }
 
-func testAccProjectInventoryFileWithRepoConfig(nameSuffix string, path string) string {
+func testAccProjectProjectInventoryFileWithRepoConfig(nameSuffix string, path string) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "semaphoreui_project_inventory" "test" {
@@ -126,7 +126,7 @@ resource "semaphoreui_project_repository" "test" {
 `, nameSuffix)), nameSuffix, path)
 }
 
-func testAccProjectInventoryTerraformWorkspaceConfig(nameSuffix string, workspace string) string {
+func testAccProjectProjectInventoryTerraformWorkspaceConfig(nameSuffix string, workspace string) string {
 	return testAccProjectInventoryConfig(nameSuffix, fmt.Sprintf(`
   terraform_workspace = {
     workspace = "%[1]s"
@@ -153,9 +153,9 @@ func TestAcc_ProjectInventoryResource_basicFile(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccProjectInventoryFileConfig(nameSuffix, "path/to/inventory"),
+				Config: testAccProjectProjectInventoryFileConfig(nameSuffix, "path/to/inventory"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryFile),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryFile),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "file.%", "3"),
@@ -181,9 +181,9 @@ func TestAcc_ProjectInventoryResource_basicFile(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccProjectInventoryFileWithRepoConfig(nameSuffix, "path/to/inventory"),
+				Config: testAccProjectProjectInventoryFileWithRepoConfig(nameSuffix, "path/to/inventory"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryFile),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryFile),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "file.%", "3"),
@@ -219,9 +219,9 @@ func TestAcc_ProjectInventoryResource_basicStatic(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccProjectInventoryStaticConfig(nameSuffix, false),
+				Config: testAccProjectProjectInventoryStaticConfig(nameSuffix, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryStatic),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryStatic),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "static.%", "2"),
@@ -246,9 +246,9 @@ func TestAcc_ProjectInventoryResource_basicStatic(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccProjectInventoryStaticConfig(nameSuffix, true),
+				Config: testAccProjectProjectInventoryStaticConfig(nameSuffix, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryStatic),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryStatic),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "static.%", "2"),
@@ -283,9 +283,9 @@ func TestAcc_ProjectInventoryResource_basicStaticYaml(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccProjectInventoryStaticYamlConfig(nameSuffix, false),
+				Config: testAccProjectProjectInventoryStaticYamlConfig(nameSuffix, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryStaticYaml),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryStaticYaml),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "static_yaml.%", "2"),
@@ -310,9 +310,9 @@ func TestAcc_ProjectInventoryResource_basicStaticYaml(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccProjectInventoryStaticYamlConfig(nameSuffix, true),
+				Config: testAccProjectProjectInventoryStaticYamlConfig(nameSuffix, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryStaticYaml),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryStaticYaml),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "static_yaml.%", "2"),
@@ -347,9 +347,9 @@ func TestAcc_ProjectInventoryResource_basicTerraformWorkspace(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccProjectInventoryTerraformWorkspaceConfig(nameSuffix, "name"),
+				Config: testAccProjectProjectInventoryTerraformWorkspaceConfig(nameSuffix, "name"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryTerraformWorkspace),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryTerraformWorkspace),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "terraform_workspace.%", "1"),
@@ -373,9 +373,9 @@ func TestAcc_ProjectInventoryResource_basicTerraformWorkspace(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccProjectInventoryTerraformWorkspaceConfig(nameSuffix, "testing"),
+				Config: testAccProjectProjectInventoryTerraformWorkspaceConfig(nameSuffix, "testing"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryTerraformWorkspace),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryTerraformWorkspace),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "terraform_workspace.%", "1"),
@@ -409,9 +409,9 @@ func TestAcc_ProjectInventoryResource_updateType(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccProjectInventoryFileConfig(nameSuffix, "path/to/inventory"),
+				Config: testAccProjectProjectInventoryFileConfig(nameSuffix, "path/to/inventory"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryFile),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryFile),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "file.%", "3"),
@@ -430,9 +430,9 @@ func TestAcc_ProjectInventoryResource_updateType(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccProjectInventoryTerraformWorkspaceConfig(nameSuffix, "testing"),
+				Config: testAccProjectProjectInventoryTerraformWorkspaceConfig(nameSuffix, "testing"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccProjectInventoryExists("semaphoreui_project_inventory.test", InventoryTerraformWorkspace),
+					testAccProjectInventoryExists("semaphoreui_project_inventory.test", ProjectInventoryTerraformWorkspace),
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "name", fmt.Sprintf("Test %s", nameSuffix)),
 
 					resource.TestCheckResourceAttr("semaphoreui_project_inventory.test", "terraform_workspace.%", "1"),

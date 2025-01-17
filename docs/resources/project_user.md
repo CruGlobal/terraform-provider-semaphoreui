@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project_user Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project User resource.
-  This resource is used to manages a user's role in a project.
+  The project user resource allows you to manage a User's role in a project.
 ---
 
 # semaphoreui_project_user (Resource)
 
-Provides a SemaphoreUI Project User resource.
-
-This resource is used to manages a user's role in a project.
+The project user resource allows you to manage a User's role in a project.
 
 ## Example Usage
 
@@ -39,12 +36,12 @@ resource "semaphoreui_project_user" "project_user" {
 ### Required
 
 - `project_id` (Number) ID of the project.
-- `role` (String) Role of the user in the project. Valid values are `"owner"`, `"manager"`, `"task_runner"` and `"guest"`.
-- `user_id` (Number) ID of the user.
+- `role` (String) Role of the user in the project. Value must be one of : `owner`, `manager`, `task_runner`, `guest`.
+- `user_id` (Number) The ID of the user.
 
 ### Read-Only
 
-- `name` (String) Name of the user.
+- `name` (String) Display name of the user.
 - `username` (String) Username of the user.
 
 ## Import

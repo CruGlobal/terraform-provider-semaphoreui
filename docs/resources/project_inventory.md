@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project_inventory Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project Inventory resource.
-  Project Inventory is used to define the Ansible inventory or a Terraform/OpenTofu workspace for a project. Only one of the inventory types (static, static_yaml, file or terraform_workspace) can be defined per inventory.
+  The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (static, static_yaml, file or terraform_workspace) can be defined per inventory.
 ---
 
 # semaphoreui_project_inventory (Resource)
 
-Provides a SemaphoreUI Project Inventory resource.
-
-Project Inventory is used to define the Ansible inventory or a Terraform/OpenTofu workspace for a project. Only one of the inventory types (`static`, `static_yaml`, `file` or `terraform_workspace`) can be defined per inventory.
+The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (`static`, `static_yaml`, `file` or `terraform_workspace`) can be defined per inventory.
 
 ## Example Usage
 
@@ -92,10 +89,8 @@ resource "semaphoreui_project_inventory" "terraform" {
 ### Required
 
 - `name` (String) The display name of the inventory or workspace.
-- `project_id` (Number) The project ID that the inventory belongs to.
-- `ssh_key_id` (Number) The Project Key ID to use for accessing hosts in the inventory.
-
-This attribute is required for all inventory types in SemaphoreUI. You should set it to the ID of an Key of type `none` if the inventory doesn't require credentials, or for Workspace type inventories.
+- `project_id` (Number) (ForceNew) The project ID that the inventory belongs to.
+- `ssh_key_id` (Number) The Project Key ID to use for accessing hosts in the inventory. This attribute is required for all inventory types in SemaphoreUI. You should set it to the ID of a Key of type `none` if the inventory doesn't require credentials, or for Workspace type inventories.
 
 ### Optional
 
@@ -113,7 +108,7 @@ This attribute is required for all inventory types in SemaphoreUI. You should se
 
 Required:
 
-- `path` (String) The path to the inventory file, relative to the Template or custom Repository. Example: `folder/hosts.yml`
+- `path` (String) The path to the inventory file, relative to the Template or custom Repository. Example: `folder/hosts.yml`. Must be a relative path (path/to/inventory).
 
 Optional:
 
@@ -126,23 +121,7 @@ Optional:
 
 Required:
 
-- `inventory` (String) Static inventory content in INI format.
-
-Example:
-```hcl
-inventory = <<-EOT
-  mail.example.com
-
-  [webservers]
-  foo.example.com
-  bar.example.com
-
-  [dbservers]
-  one.example.com
-  two.example.com
-  three.example.com
-EOT
-```
+- `inventory` (String) Static inventory content in INI format. See examples above for format.
 
 Optional:
 
@@ -154,31 +133,7 @@ Optional:
 
 Required:
 
-- `inventory` (String) Static inventory content in YAML format.
-
-Example:
-```hcl
-inventory = yamlencode({
-  ungrouped = {
-    hosts = {
-      mail.example.com = {}
-    }
-  }
-  webservers = {
-    hosts = {
-      foo.example.com = {}
-      bar.example.com = {}
-    }
-  }
-  dbservers = {
-    hosts = {
-      one.example.com = {}
-      two.example.com = {}
-      three.example.com = {}
-    }
-  }
-})
-```
+- `inventory` (String) Static inventory content in YAML format. See examples above for format.
 
 Optional:
 

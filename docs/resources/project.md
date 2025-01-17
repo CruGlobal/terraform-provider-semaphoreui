@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project resource.
-  A project is a place to separate management activity. All SemaphoreUI activities occur within the context of a project.
+  The project resource allows you to manage a project in SemaphoreUI.
 ---
 
 # semaphoreui_project (Resource)
 
-Provides a SemaphoreUI Project resource.
-
-A project is a place to separate management activity. All SemaphoreUI activities occur within the context of a project.
+The project resource allows you to manage a project in SemaphoreUI.
 
 ## Example Usage
 
@@ -32,14 +29,14 @@ resource "semaphoreui_project" "example" {
 
 ### Optional
 
-- `alert` (Boolean) Allow alerts for this project. Default `false`.
+- `alert` (Boolean) Allow alerts for this project. Value defaults to `false`.
 - `alert_chat` (String) Telegram chat ID.
-- `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited. Default `0`.
+- `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited. Value must be at least 0. Value defaults to `0`.
 
 ### Read-Only
 
 - `created` (String) Creation date of the project.
-- `id` (Number) Project ID.
+- `id` (Number) The ID of the project.
 
 ## Import
 

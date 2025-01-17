@@ -228,7 +228,18 @@ func (p *SemaphoreUIProvider) Resources(ctx context.Context) []func() resource.R
 }
 
 func (p *SemaphoreUIProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewProjectDataSource,
+		NewProjectEnvironmentDataSource,
+		NewProjectInventoryDataSource,
+		NewProjectKeyDataSource,
+		NewProjectRepositoryDataSource,
+		NewProjectScheduleDataSource,
+		NewProjectsDataSource,
+		NewProjectTemplateDataSource,
+		NewProjectUserDataSource,
+		NewUserDataSource,
+	}
 }
 
 func (p *SemaphoreUIProvider) Functions(ctx context.Context) []func() function.Function {

@@ -41,9 +41,9 @@ data "semaphoreui_user" "superman" {
 
 ### Read-Only
 
-- `admin` (Boolean) Is the user an admin?.
-- `alert` (Boolean) Send alerts to the user's email?.
+- `admin` (Boolean) Indicates if the user is an admin.
+- `alert` (Boolean) Indicates if alerts should be sent to the user's email.
 - `created` (String) Creation date of the user.
-- `external` (Boolean) Is the user linked to an external identity provider?.
+- `external` (Boolean) Indicates if the user is linked to an external identity provider.
 - `name` (String) Display name.
 - `password` (String, Sensitive) This value is never returned by the API and will be an empty string.

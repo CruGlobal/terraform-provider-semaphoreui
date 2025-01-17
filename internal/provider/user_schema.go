@@ -141,7 +141,7 @@ func userSchema() superschema.Schema {
 			},
 			"admin": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Is the user an admin?",
+					MarkdownDescription: "Indicates if the user is an admin.",
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
@@ -154,7 +154,7 @@ func userSchema() superschema.Schema {
 			},
 			"alert": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Send alerts to the user's email?",
+					MarkdownDescription: "Indicates if alerts should be sent to the user's email.",
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
@@ -167,7 +167,7 @@ func userSchema() superschema.Schema {
 			},
 			"external": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Is the user linked to an external identity provider?",
+					MarkdownDescription: "Indicates if the user is linked to an external identity provider.",
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,

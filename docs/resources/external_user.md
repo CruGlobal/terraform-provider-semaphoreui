@@ -34,13 +34,13 @@ resource "semaphoreui_external_user" "example" {
 
 ### Optional
 
-- `admin` (Boolean) Is the user an admin?. Value defaults to `false`.
-- `alert` (Boolean) Send alerts to the user's email?. Value defaults to `false`.
+- `admin` (Boolean) Indicates if the user is an admin. Value defaults to `false`.
+- `alert` (Boolean) Indicates if alerts should be sent to the user's email. Value defaults to `false`.
 
 ### Read-Only
 
 - `created` (String) Creation date of the user.
-- `external` (Boolean) Is the user linked to an external identity provider?. Value defaults to `true`.
+- `external` (Boolean) Indicates if the user is linked to an external identity provider. Value defaults to `true`.
 - `id` (Number) The ID of the user.
 
 ## Import

@@ -3,12 +3,7 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-semaphoreui/internal/stringvalidator"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/schedule"
 	"terraform-provider-semaphoreui/semaphoreui/models"
@@ -50,55 +45,11 @@ func (r *projectScheduleResource) Metadata(_ context.Context, req resource.Metad
 	resp.TypeName = req.ProviderTypeName + "_project_schedule"
 }
 
-type projectScheduleModel struct {
-	ID         types.Int64  `tfsdk:"id"`
-	ProjectID  types.Int64  `tfsdk:"project_id"`
-	TemplateID types.Int64  `tfsdk:"template_id"`
-	Name       types.String `tfsdk:"name"`
-	CronFormat types.String `tfsdk:"cron_format"`
-	Enabled    types.Bool   `tfsdk:"enabled"`
+func (r *projectScheduleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectScheduleSchema().GetResource(ctx)
 }
 
-func (r *projectScheduleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `Provides a SemaphoreUI Project Schedule resource.
-
-Allows scheduling the execution of templates in a project.`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The repository ID.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "The project ID that the repository belongs to.",
-				Required:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
-			},
-			"template_id": schema.Int64Attribute{
-				MarkdownDescription: "The template ID that the schedule executes.",
-				Required:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the repository.",
-				Required:            true,
-			},
-			"cron_format": schema.StringAttribute{
-				MarkdownDescription: "The cron format of the schedule.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.CronFormat(),
-				},
-			},
-			"enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is enabled.",
-				Required:            true,
-			},
-		},
-	}
-}
-
-func convertProjectScheduleModelToRepositorySchedule(schedule projectScheduleModel) *models.ScheduleRequest {
+func convertProjectScheduleModelToRepositorySchedule(schedule ProjectScheduleModel) *models.ScheduleRequest {
 	model := models.ScheduleRequest{
 		ProjectID:  schedule.ProjectID.ValueInt64(),
 		TemplateID: schedule.TemplateID.ValueInt64(),
@@ -112,8 +63,8 @@ func convertProjectScheduleModelToRepositorySchedule(schedule projectScheduleMod
 	return &model
 }
 
-func convertScheduleResponseToProjectScheduleModel(request *models.Schedule) projectScheduleModel {
-	return projectScheduleModel{
+func convertScheduleResponseToProjectScheduleModel(request *models.Schedule) ProjectScheduleModel {
+	return ProjectScheduleModel{
 		ID:         types.Int64Value(request.ID),
 		ProjectID:  types.Int64Value(request.ProjectID),
 		TemplateID: types.Int64Value(request.TemplateID),
@@ -125,7 +76,7 @@ func convertScheduleResponseToProjectScheduleModel(request *models.Schedule) pro
 
 func (r *projectScheduleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectScheduleModel
+	var plan ProjectScheduleModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -153,7 +104,7 @@ func (r *projectScheduleResource) Create(ctx context.Context, req resource.Creat
 // Read refreshes the Terraform state with the latest data.
 func (r *projectScheduleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectScheduleModel
+	var state ProjectScheduleModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -181,7 +132,7 @@ func (r *projectScheduleResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectScheduleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectScheduleModel
+	var plan ProjectScheduleModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -221,7 +172,7 @@ func (r *projectScheduleResource) Update(ctx context.Context, req resource.Updat
 
 func (r *projectScheduleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectScheduleModel
+	var state ProjectScheduleModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return

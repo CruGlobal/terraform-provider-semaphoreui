@@ -234,6 +234,7 @@ func (p *SemaphoreUIProvider) DataSources(ctx context.Context) []func() datasour
 		NewProjectInventoryDataSource,
 		NewProjectKeyDataSource,
 		NewProjectRepositoryDataSource,
+		NewProjectScheduleDataSource,
 		NewProjectsDataSource,
 		NewProjectUserDataSource,
 		NewUserDataSource,

@@ -3,15 +3,12 @@
 page_title: "semaphoreui_project_schedule Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI Project Schedule resource.
-  Allows scheduling the execution of templates in a project.
+  The project schedule resource allows you to schedule the execution of templates in a project.
 ---
 
 # semaphoreui_project_schedule (Resource)
 
-Provides a SemaphoreUI Project Schedule resource.
-
-Allows scheduling the execution of templates in a project.
+The project schedule resource allows you to schedule the execution of templates in a project.
 
 ## Example Usage
 
@@ -39,15 +36,15 @@ resource "semaphoreui_project_schedule" "schedule" {
 
 ### Required
 
-- `cron_format` (String) The cron format of the schedule.
+- `cron_format` (String) The cron format of the schedule. Must be valid [Cron Expression](https://github.com/adhocore/gronx?tab=readme-ov-file#cron-expression).
 - `enabled` (Boolean) Whether the schedule is enabled.
-- `name` (String) The display name of the repository.
-- `project_id` (Number) The project ID that the repository belongs to.
-- `template_id` (Number) The template ID that the schedule executes.
+- `name` (String) The display name of the schedule.
+- `project_id` (Number) (ForceNew) The project ID that the schedule belongs to.
+- `template_id` (Number) (ForceNew) The template ID that the schedule executes.
 
 ### Read-Only
 
-- `id` (Number) The repository ID.
+- `id` (Number) The schedule ID.
 
 ## Import
 

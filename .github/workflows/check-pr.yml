@@ -15,6 +15,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fix_dependabot_labels:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            major
+            minor
+
   check_semver_labels:
     name: Check Semver labels
     if: github.base_ref == 'main'

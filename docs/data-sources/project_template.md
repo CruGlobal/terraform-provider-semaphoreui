@@ -90,7 +90,7 @@ Read-Only:
 
 Read-Only:
 
-- `client_script` (Attributes) Unlock vault using an ansible vault password client script. (see [below for nested schema](#nestedatt--vaults--client_script))
+- `client_script` (Attributes) Unlock vault using an Ansible vault password client script. (see [below for nested schema](#nestedatt--vaults--client_script))
 - `id` (Number) The vault ID.
 - `name` (String) Ansible vault ID name. Must be unique.
 - `password` (Attributes) Unlock vault using a password. (see [below for nested schema](#nestedatt--vaults--password))

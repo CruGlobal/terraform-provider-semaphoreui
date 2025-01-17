@@ -26,7 +26,7 @@ data "semaphoreui_user" "batman" {
 
 # Lookup User by Email
 data "semaphoreui_user" "superman" {
-  username = "clark.kent@dailyplanet.com"
+  email = "clark.kent@dailyplanet.com"
 }
 ```
 

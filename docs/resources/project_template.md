@@ -196,7 +196,7 @@ Required:
 
 Optional:
 
-- `client_script` (Attributes) Unlock vault using an ansible vault password client script. Ensure that if an attribute is set, these are not set: "[<.password]". (see [below for nested schema](#nestedatt--vaults--client_script))
+- `client_script` (Attributes) Unlock vault using an Ansible vault password client script. Ensure that if an attribute is set, these are not set: "[<.password]". (see [below for nested schema](#nestedatt--vaults--client_script))
 - `password` (Attributes) Unlock vault using a password. Ensure that if an attribute is set, these are not set: "[<.client_script]". (see [below for nested schema](#nestedatt--vaults--password))
 
 Read-Only:

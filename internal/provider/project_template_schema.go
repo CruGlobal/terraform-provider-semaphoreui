@@ -521,7 +521,7 @@ func ProjectTemplateSchema() superschema.Schema {
 					},
 					"client_script": superschema.SingleNestedAttribute{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "Unlock vault using an ansible vault password client script.",
+							MarkdownDescription: "Unlock vault using an Ansible vault password client script.",
 						},
 						Resource: &schemaR.SingleNestedAttribute{
 							Optional: true,

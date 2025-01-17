@@ -3,19 +3,8 @@ package provider
 import (
 	"context"
 	"encoding/json"
-	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
 	"sort"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
@@ -58,271 +47,11 @@ func (r *projectTemplateResource) Metadata(_ context.Context, req resource.Metad
 	resp.TypeName = req.ProviderTypeName + "_project_template"
 }
 
-type projectTemplateModel struct {
-	ID            types.Int64 `tfsdk:"id"`
-	ProjectID     types.Int64 `tfsdk:"project_id"`
-	EnvironmentID types.Int64 `tfsdk:"environment_id"`
-	InventoryID   types.Int64 `tfsdk:"inventory_id"`
-	RepositoryID  types.Int64 `tfsdk:"repository_id"`
-	//ViewID        types.Int64 `tfsdk:"view_id"`
-
-	Name                    types.String `tfsdk:"name"`
-	Description             types.String `tfsdk:"description"`
-	App                     types.String `tfsdk:"app"`
-	AllowOverrideArgsInTask types.Bool   `tfsdk:"allow_override_args_in_task"`
-	Arguments               types.List   `tfsdk:"arguments"`
-	GitBranch               types.String `tfsdk:"git_branch"`
-	Playbook                types.String `tfsdk:"playbook"`
-	SuppressSuccessAlerts   types.Bool   `tfsdk:"suppress_success_alerts"`
-	SurveyVars              types.List   `tfsdk:"survey_vars"`
-	Vaults                  types.List   `tfsdk:"vaults"`
-
-	Build  *projectTemplateTypeBuildModel  `tfsdk:"build"`
-	Deploy *projectTemplateTypeDeployModel `tfsdk:"deploy"`
+func (r *projectTemplateResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ProjectTemplateSchema().GetResource(ctx)
 }
 
-type projectTemplateTypeBuildModel struct {
-	StartVersion types.String `tfsdk:"start_version"`
-}
-
-type projectTemplateTypeDeployModel struct {
-	BuildTemplateID types.Int64 `tfsdk:"build_template_id"`
-	Autorun         types.Bool  `tfsdk:"autorun"`
-}
-
-type projectTemplateSurveyVarModel struct {
-	Name        types.String      `tfsdk:"name"`
-	Title       types.String      `tfsdk:"title"`
-	Description types.String      `tfsdk:"description"`
-	Required    types.Bool        `tfsdk:"required"`
-	Type        types.String      `tfsdk:"type"`
-	EnumValues  map[string]string `tfsdk:"enum_values"`
-}
-
-type projectTemplateVaultModel struct {
-	ID           types.Int64                        `tfsdk:"id"`
-	Name         types.String                       `tfsdk:"name"`
-	Password     *projectTemplateVaultPasswordModel `tfsdk:"password"`
-	ClientScript *projectTemplateVaultScriptModel   `tfsdk:"client_script"`
-}
-
-type projectTemplateVaultPasswordModel struct {
-	VaultKeyID types.Int64 `tfsdk:"vault_key_id"`
-}
-
-type projectTemplateVaultScriptModel struct {
-	Script types.String `tfsdk:"script"`
-}
-
-func (r *projectTemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: `Provides a SemaphoreUI ProjectTemplate resource.`,
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The project template ID.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"project_id": schema.Int64Attribute{
-				MarkdownDescription: "The project ID.",
-				Required:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
-			},
-			"environment_id": schema.Int64Attribute{
-				MarkdownDescription: "The project environment ID.",
-				Required:            true,
-			},
-			"inventory_id": schema.Int64Attribute{
-				MarkdownDescription: "The project inventory ID.",
-				Required:            true,
-			},
-			"repository_id": schema.Int64Attribute{
-				MarkdownDescription: "The project repository ID.",
-				Required:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the template.",
-				Required:            true,
-			},
-			"app": schema.StringAttribute{
-				MarkdownDescription: "The application name. Must be a valid SemaphoreUI application name. Default names include: `ansible`, `terraform`, `tofu`, `bash`, `powershell` and `python`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("ansible"),
-			},
-			"playbook": schema.StringAttribute{
-				MarkdownDescription: "The playbook/script filename.",
-				Required:            true,
-				Validators: []validator.String{
-					// Only relative paths are allowed
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[^/].*$`),
-						"must be a relative path (path/to/inventory)",
-					),
-				},
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the template.",
-				Optional:            true,
-			},
-			"git_branch": schema.StringAttribute{
-				MarkdownDescription: "Override the git branch defined in the project repository.",
-				Optional:            true,
-			},
-			"allow_override_args_in_task": schema.BoolAttribute{
-				MarkdownDescription: "Allow overriding arguments in the task.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"suppress_success_alerts": schema.BoolAttribute{
-				MarkdownDescription: "Suppress success alerts.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"arguments": schema.ListAttribute{
-				MarkdownDescription: "Commandline arguments passed to the application.",
-				Optional:            true,
-				ElementType:         types.StringType,
-			},
-			"build": schema.SingleNestedAttribute{
-				MarkdownDescription: "Specifies a build type template used to create artifacts. SemaphoreUI doesn't support artifacts out-of-box, it only provides task versioning. You should implement the artifact creation yourself.",
-				Optional:            true,
-				Validators: []validator.Object{
-					objectvalidator.ConflictsWith(path.MatchRoot("deploy")),
-				},
-				Attributes: map[string]schema.Attribute{
-					"start_version": schema.StringAttribute{
-						MarkdownDescription: "Defines start version of your artifact. Each run increments the artifact version.",
-						Optional:            true,
-					},
-				},
-			},
-			"deploy": schema.SingleNestedAttribute{
-				MarkdownDescription: "Specifies a deploy type template used to deploy artifacts. Each `deploy` template is associated with a build template.",
-				Optional:            true,
-				Validators: []validator.Object{
-					objectvalidator.ConflictsWith(path.MatchRoot("build")),
-				},
-				Attributes: map[string]schema.Attribute{
-					"build_template_id": schema.Int64Attribute{
-						MarkdownDescription: "The ID of the build template.",
-						Required:            true,
-					},
-					"autorun": schema.BoolAttribute{
-						MarkdownDescription: "Automatically run the deploy template after the build template.",
-						Optional:            true,
-						Computed:            true,
-						Default:             booldefault.StaticBool(false),
-					},
-				},
-			},
-			"survey_vars": schema.ListNestedAttribute{
-				MarkdownDescription: "Survey variables.",
-				Optional:            true,
-				NestedObject:        projectTemplateSurveyVarModel{}.GetSchema(),
-			},
-			"vaults": schema.ListNestedAttribute{
-				MarkdownDescription: "Ansible Vaults Passwords.",
-				Optional:            true,
-				NestedObject:        projectTemplateVaultModel{}.GetSchema(),
-			},
-		},
-	}
-}
-
-func (projectTemplateSurveyVarModel) GetSchema() schema.NestedAttributeObject {
-	return schema.NestedAttributeObject{
-		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the survey variable.",
-				Required:            true,
-			},
-			"title": schema.StringAttribute{
-				MarkdownDescription: "The title of the survey variable.",
-				Required:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the survey variable.",
-				Optional:            true,
-			},
-			"required": schema.BoolAttribute{
-				MarkdownDescription: "Whether the survey variable is required.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"type": schema.StringAttribute{
-				MarkdownDescription: "The type of the survey variable. Valid types are `string`, `integer`, `secret` and `enum`. When `enum` is used, the `enum_values` attribute must be defined.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.Any(
-						stringvalidator.OneOf("string", "integer", "secret"),
-						stringvalidator.All(
-							stringvalidator.OneOf("enum"),
-							stringvalidator.AlsoRequires(path.Expressions{
-								path.MatchRelative().AtParent().AtName("enum_values"),
-							}...),
-						),
-					),
-				},
-			},
-			"enum_values": schema.MapAttribute{
-				MarkdownDescription: "The enum name/values.",
-				Optional:            true,
-				ElementType:         types.StringType,
-				Validators: []validator.Map{
-					mapvalidator.SizeAtLeast(1),
-					mapvalidator.AlsoRequires(path.Expressions{
-						path.MatchRelative().AtParent().AtName("type"),
-					}...),
-				},
-			},
-		},
-	}
-}
-
-func (projectTemplateVaultModel) GetSchema() schema.NestedAttributeObject {
-	return schema.NestedAttributeObject{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				MarkdownDescription: "The vault ID.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Ansible vault ID name. Must be unique.",
-				Required:            true,
-			},
-			"password": schema.SingleNestedAttribute{
-				MarkdownDescription: "Unlock vault using a password.",
-				Optional:            true,
-				Validators: []validator.Object{
-					objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("client_script")),
-				},
-				Attributes: map[string]schema.Attribute{
-					"vault_key_id": schema.Int64Attribute{
-						MarkdownDescription: "The project key ID to use.",
-						Required:            true,
-					},
-				},
-			},
-			"client_script": schema.SingleNestedAttribute{
-				MarkdownDescription: "Unlock vault using an ansible vault password client script.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"script": schema.StringAttribute{
-						MarkdownDescription: "The script path. Must end in `-client` with extension. See [Ansible Vault Password Client](https://docs.ansible.com/ansible/latest/vault_guide/vault_managing_passwords.html#storing-passwords-in-third-party-tools-with-vault-password-client-scripts).",
-						Required:            true,
-					},
-				},
-			},
-		},
-	}
-}
-
-func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template projectTemplateModel) *models.TemplateRequest {
+func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template ProjectTemplateModel) *models.TemplateRequest {
 	model := models.TemplateRequest{
 		ProjectID:               template.ProjectID.ValueInt64(),
 		EnvironmentID:           template.EnvironmentID.ValueInt64(),
@@ -369,7 +98,7 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 
 	model.SurveyVars = []*models.TemplateSurveyVar{}
 	if !template.SurveyVars.IsNull() && !template.SurveyVars.IsUnknown() {
-		var surveyVars []projectTemplateSurveyVarModel
+		var surveyVars []ProjectTemplateSurveyVarModel
 		template.SurveyVars.ElementsAs(ctx, &surveyVars, false)
 		for _, surveyVar := range surveyVars {
 			surveyVarModel := models.TemplateSurveyVar{
@@ -395,7 +124,7 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 
 	model.Vaults = []*models.TemplateVault{}
 	if !template.Vaults.IsNull() || !template.Vaults.IsUnknown() {
-		var vaults []projectTemplateVaultModel
+		var vaults []ProjectTemplateVaultModel
 		template.Vaults.ElementsAs(ctx, &vaults, false)
 		for _, vault := range vaults {
 			vaultModel := models.TemplateVault{
@@ -427,8 +156,8 @@ func (a ByVaultID) Len() int           { return len(a) }
 func (a ByVaultID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByVaultID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
-func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request *models.Template, prev *projectTemplateModel) projectTemplateModel {
-	model := projectTemplateModel{
+func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request *models.Template, prev *ProjectTemplateModel) ProjectTemplateModel {
+	model := ProjectTemplateModel{
 		ID:                      types.Int64Value(request.ID),
 		ProjectID:               types.Int64Value(request.ProjectID),
 		EnvironmentID:           types.Int64Value(request.EnvironmentID),
@@ -466,7 +195,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 	}
 
 	if request.Type == "build" {
-		build := projectTemplateTypeBuildModel{}
+		build := ProjectTemplateTypeBuildModel{}
 		if request.StartVersion != "" {
 			build.StartVersion = types.StringValue(request.StartVersion)
 		} else {
@@ -480,7 +209,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 	}
 
 	if request.Type == "deploy" {
-		model.Deploy = &projectTemplateTypeDeployModel{
+		model.Deploy = &ProjectTemplateTypeDeployModel{
 			BuildTemplateID: types.Int64Value(request.BuildTemplateID),
 			Autorun:         types.BoolValue(request.Autorun),
 		}
@@ -489,9 +218,9 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 	if len(request.SurveyVars) == 0 {
 		model.SurveyVars = prev.SurveyVars
 	} else {
-		var surveyVars []projectTemplateSurveyVarModel
+		var surveyVars []ProjectTemplateSurveyVarModel
 		for _, surveyVar := range request.SurveyVars {
-			surveyVarModel := projectTemplateSurveyVarModel{
+			surveyVarModel := ProjectTemplateSurveyVarModel{
 				Name:     types.StringValue(surveyVar.Name),
 				Title:    types.StringValue(surveyVar.Title),
 				Required: types.BoolValue(surveyVar.Required),
@@ -509,7 +238,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 			}
 			surveyVars = append(surveyVars, surveyVarModel)
 		}
-		surveyVarsModel, _ := types.ListValueFrom(ctx, projectTemplateSurveyVarModel{}.GetSchema().Type(), &surveyVars)
+		surveyVarsModel, _ := types.ListValueFrom(ctx, ProjectTemplateSurveyVarType, &surveyVars)
 		model.SurveyVars = surveyVarsModel
 	}
 
@@ -518,26 +247,25 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 	} else {
 		sort.Sort(ByVaultID(request.Vaults))
 
-		var vaults []projectTemplateVaultModel
+		var vaults []ProjectTemplateVaultModel
 		for _, vault := range request.Vaults {
-			vaultModel := projectTemplateVaultModel{
+			vaultModel := ProjectTemplateVaultModel{
 				ID:   types.Int64Value(vault.ID),
 				Name: types.StringValue(vault.Name),
 			}
 			if vault.Type == "password" {
-				vaultModel.Password = &projectTemplateVaultPasswordModel{
+				vaultModel.Password = &ProjectTemplateVaultPasswordModel{
 					VaultKeyID: types.Int64Value(vault.VaultKeyID),
 				}
 			}
 			if vault.Type == "script" {
-				vaultModel.ClientScript = &projectTemplateVaultScriptModel{
+				vaultModel.ClientScript = &ProjectTemplateVaultScriptModel{
 					Script: types.StringValue(vault.Script),
 				}
 			}
 			vaults = append(vaults, vaultModel)
 		}
-		typed := projectTemplateVaultModel{}.GetSchema().Type()
-		vaultsModel, _ := types.ListValueFrom(ctx, typed, &vaults)
+		vaultsModel, _ := types.ListValueFrom(ctx, ProjectTemplateVaultType, &vaults)
 		model.Vaults = vaultsModel
 	}
 
@@ -546,7 +274,7 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 
 func (r *projectTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectTemplateModel
+	var plan ProjectTemplateModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -588,7 +316,7 @@ func (r *projectTemplateResource) Create(ctx context.Context, req resource.Creat
 // Read refreshes the Terraform state with the latest data.
 func (r *projectTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectTemplateModel
+	var state ProjectTemplateModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -617,7 +345,7 @@ func (r *projectTemplateResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectTemplateModel
+	var plan ProjectTemplateModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -657,7 +385,7 @@ func (r *projectTemplateResource) Update(ctx context.Context, req resource.Updat
 
 func (r *projectTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectTemplateModel
+	var state ProjectTemplateModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -697,9 +425,9 @@ func (r *projectTemplateResource) ImportState(ctx context.Context, req resource.
 		)
 		return
 	}
-	model := convertTemplateResponseToProjectTemplateModel(ctx, response.Payload, &projectTemplateModel{
-		SurveyVars: types.ListNull(projectTemplateSurveyVarModel{}.GetSchema().Type()),
-		Vaults:     types.ListNull(projectTemplateVaultModel{}.GetSchema().Type()),
+	model := convertTemplateResponseToProjectTemplateModel(ctx, response.Payload, &ProjectTemplateModel{
+		SurveyVars: types.ListNull(ProjectTemplateSurveyVarType),
+		Vaults:     types.ListNull(ProjectTemplateVaultType),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)

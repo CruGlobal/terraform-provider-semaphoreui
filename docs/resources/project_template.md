@@ -3,12 +3,12 @@
 page_title: "semaphoreui_project_template Resource - semaphoreui"
 subcategory: ""
 description: |-
-  Provides a SemaphoreUI ProjectTemplate resource.
+  The project template resource allows you to define a task template which tells SemaphoreUI how to run an application task.
 ---
 
 # semaphoreui_project_template (Resource)
 
-Provides a SemaphoreUI ProjectTemplate resource.
+The project template resource allows you to define a task template which tells SemaphoreUI how to run an application task.
 
 ## Example Usage
 
@@ -49,14 +49,6 @@ resource "semaphoreui_project_environment" "environment" {
     type  = "var"
     value = "VALUE_ONE"
   }]
-}
-
-resource "semaphoreui_project_repository" "repository" {
-  project_id = semaphoreui_project.project.id
-  name       = "Example Repository"
-  url        = "https://github.com/semaphoreui/semaphore.git"
-  branch     = "develop"
-  ssh_key_id = semaphoreui_project_key.none.id
 }
 
 # Task Template
@@ -135,29 +127,29 @@ resource "semaphoreui_project_template" "deploy" {
 
 ### Required
 
-- `environment_id` (Number) The project environment ID.
-- `inventory_id` (Number) The project inventory ID.
+- `environment_id` (Number) The environment (variable group) ID that the template uses.
+- `inventory_id` (Number) The inventory ID that the template uses.
 - `name` (String) The display name of the template.
-- `playbook` (String) The playbook/script filename.
-- `project_id` (Number) The project ID.
-- `repository_id` (Number) The project repository ID.
+- `playbook` (String) The playbook/script filename. Must be a relative path (path/to/inventory).
+- `project_id` (Number) (ForceNew) The project ID that the template belongs to.
+- `repository_id` (Number) The repository ID that the template uses.
 
 ### Optional
 
-- `allow_override_args_in_task` (Boolean) Allow overriding arguments in the task.
-- `app` (String) The application name. Must be a valid SemaphoreUI application name. Default names include: `ansible`, `terraform`, `tofu`, `bash`, `powershell` and `python`.
+- `allow_override_args_in_task` (Boolean) Allow overriding arguments in the task. Value defaults to `false`.
+- `app` (String) The application name. Must be a valid SemaphoreUI application name. Default applications include: `ansible`, `terraform`, `tofu`, `bash`, `powershell` and `python`. Value defaults to `ansible`.
 - `arguments` (List of String) Commandline arguments passed to the application.
-- `build` (Attributes) Specifies a build type template used to create artifacts. SemaphoreUI doesn't support artifacts out-of-box, it only provides task versioning. You should implement the artifact creation yourself. (see [below for nested schema](#nestedatt--build))
-- `deploy` (Attributes) Specifies a deploy type template used to deploy artifacts. Each `deploy` template is associated with a build template. (see [below for nested schema](#nestedatt--deploy))
+- `build` (Attributes) Specifies a build type template used to create artifacts. SemaphoreUI doesn't support artifacts out-of-box, it only provides task versioning. You should implement the artifact creation yourself. Ensure that if an attribute is set, these are not set: "[deploy]". (see [below for nested schema](#nestedatt--build))
+- `deploy` (Attributes) Specifies a deploy type template used to deploy artifacts. Each `deploy` template is associated with a build template. Ensure that if an attribute is set, these are not set: "[build]". (see [below for nested schema](#nestedatt--deploy))
 - `description` (String) The description of the template.
 - `git_branch` (String) Override the git branch defined in the project repository.
-- `suppress_success_alerts` (Boolean) Suppress success alerts.
+- `suppress_success_alerts` (Boolean) Suppress success alerts. Value defaults to `false`.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))
-- `vaults` (Attributes List) Ansible Vaults Passwords. (see [below for nested schema](#nestedatt--vaults))
+- `vaults` (Attributes List) Ansible Vault Passwords. (see [below for nested schema](#nestedatt--vaults))
 
 ### Read-Only
 
-- `id` (Number) The project template ID.
+- `id` (Number) The template ID.
 
 <a id="nestedatt--build"></a>
 ### Nested Schema for `build`
@@ -176,7 +168,7 @@ Required:
 
 Optional:
 
-- `autorun` (Boolean) Automatically run the deploy template after the build template.
+- `autorun` (Boolean) Automatically run the deploy template after the build template. Value defaults to `false`.
 
 
 <a id="nestedatt--survey_vars"></a>
@@ -186,13 +178,13 @@ Required:
 
 - `name` (String) The name of the survey variable.
 - `title` (String) The title of the survey variable.
-- `type` (String) The type of the survey variable. Valid types are `string`, `integer`, `secret` and `enum`. When `enum` is used, the `enum_values` attribute must be defined.
+- `type` (String) The type of the survey variable. Valid types are `string`, `integer`, `secret` and `enum`. When `enum` is used, the `enum_values` attribute must be defined. Value must satisfy at least one of the validations: value must be one of: ["string" "integer" "secret"] + Value must satisfy all of the validations: value must be one of: ["enum"] + Ensure that if an attribute is set, also these are set: "[<.enum_values]".
 
 Optional:
 
 - `description` (String) The description of the survey variable.
-- `enum_values` (Map of String) The enum name/values.
-- `required` (Boolean) Whether the survey variable is required.
+- `enum_values` (Map of String) The enum name/values. Map must contain at least 1 elements. Ensure that if an attribute is set, also these are set: "[<.type]".
+- `required` (Boolean) Whether the survey variable is required. Value defaults to `false`.
 
 
 <a id="nestedatt--vaults"></a>
@@ -204,8 +196,8 @@ Required:
 
 Optional:
 
-- `client_script` (Attributes) Unlock vault using an ansible vault password client script. (see [below for nested schema](#nestedatt--vaults--client_script))
-- `password` (Attributes) Unlock vault using a password. (see [below for nested schema](#nestedatt--vaults--password))
+- `client_script` (Attributes) Unlock vault using an ansible vault password client script. Ensure that if an attribute is set, these are not set: "[<.password]". (see [below for nested schema](#nestedatt--vaults--client_script))
+- `password` (Attributes) Unlock vault using a password. Ensure that if an attribute is set, these are not set: "[<.client_script]". (see [below for nested schema](#nestedatt--vaults--password))
 
 Read-Only:
 

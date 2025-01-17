@@ -50,10 +50,10 @@ func (r *projectResource) Metadata(_ context.Context, req resource.MetadataReque
 
 // Schema defines the schema for the resource.
 func (r *projectResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = projectSchema().GetResource(ctx)
+	resp.Schema = ProjectSchema().GetResource(ctx)
 }
 
-func convertPayloadToProjectModel(payload *models.Project) projectModel {
+func convertProjectResponseToProjectModel(payload *models.Project) ProjectModel {
 	var alertChat types.String
 	if payload.AlertChat == "" {
 		alertChat = types.StringNull()
@@ -67,7 +67,7 @@ func convertPayloadToProjectModel(payload *models.Project) projectModel {
 	//} else {
 	//	projType = types.StringValue(payload.Type)
 	//}
-	return projectModel{
+	return ProjectModel{
 		ID:               types.Int64Value(payload.ID),
 		Name:             types.StringValue(payload.Name),
 		Alert:            types.BoolValue(payload.Alert),
@@ -80,7 +80,7 @@ func convertPayloadToProjectModel(payload *models.Project) projectModel {
 
 func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan projectModel
+	var plan ProjectModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -105,7 +105,7 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan = convertPayloadToProjectModel(response.Payload)
+	plan = convertProjectResponseToProjectModel(response.Payload)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
@@ -117,7 +117,7 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 
 func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state projectModel
+	var state ProjectModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -134,7 +134,7 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Overwrite with refreshed state
-	state = convertPayloadToProjectModel(response.Payload)
+	state = convertProjectResponseToProjectModel(response.Payload)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -146,7 +146,7 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan projectModel
+	var plan ProjectModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -183,7 +183,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Update resource state with updated project
-	plan = convertPayloadToProjectModel(response.Payload)
+	plan = convertProjectResponseToProjectModel(response.Payload)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -194,7 +194,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 
 func (r *projectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state projectModel
+	var state ProjectModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/projects"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -46,37 +46,57 @@ func (d *projectDataSource) Metadata(_ context.Context, req datasource.MetadataR
 
 // Schema defines the schema for the data source.
 func (d *projectDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = projectSchema().GetDataSource(ctx)
+	resp.Schema = ProjectSchema().GetDataSource(ctx)
+}
+
+func (d *projectDataSource) GetProjectByName(name string) (*ProjectModel, error) {
+	response, err := d.client.Projects.GetProjects(&projects.GetProjectsParams{}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not read Projects: %s", err.Error())
+	}
+
+	for _, project := range response.Payload {
+		if project.Name == name {
+			projectModel := convertProjectResponseToProjectModel(project)
+			return &projectModel, nil
+		}
+	}
+	return nil, fmt.Errorf("project with name %s not found", name)
 }
 
 func (d *projectDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config projectModel
+	var config ProjectModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	response, err := d.client.Project.GetProjectProjectID(&project.GetProjectProjectIDParams{
-		ProjectID: config.ID.ValueInt64(),
-	}, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Semaphore Project",
-			fmt.Sprintf("Could not read project: %s", err.Error()),
-		)
-		return
+	var model ProjectModel
+	if !config.ID.IsNull() && !config.ID.IsUnknown() {
+		response, err := d.client.Project.GetProjectProjectID(&project.GetProjectProjectIDParams{
+			ProjectID: config.ID.ValueInt64(),
+		}, nil)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Semaphore Project",
+				fmt.Sprintf("Could not read project: %s", err.Error()),
+			)
+			return
+		}
+		model = convertProjectResponseToProjectModel(response.Payload)
+	} else if !config.Name.IsUnknown() && !config.Name.IsNull() {
+		proj, err := d.GetProjectByName(config.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Semaphore Project",
+				fmt.Sprintf("Could not read project: %s", err.Error()),
+			)
+			return
+		}
+		model = *proj
 	}
 
-	state := projectModel{
-		ID:               types.Int64Value(response.Payload.ID),
-		Created:          types.StringValue(response.Payload.Created),
-		Name:             types.StringValue(response.Payload.Name),
-		Alert:            types.BoolValue(response.Payload.Alert),
-		AlertChat:        types.StringValue(response.Payload.AlertChat),
-		MaxParallelTasks: types.Int64Value(*response.Payload.MaxParallelTasks),
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

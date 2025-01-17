@@ -2,7 +2,9 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -15,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type projectModel struct {
+type ProjectModel struct {
 	ID               types.Int64  `tfsdk:"id"`
 	Created          types.String `tfsdk:"created"`
 	Name             types.String `tfsdk:"name"`
@@ -25,7 +27,7 @@ type projectModel struct {
 	//Type             types.String `tfsdk:"type"`
 }
 
-func projectSchema() superschema.Schema {
+func ProjectSchema() superschema.Schema {
 	return superschema.Schema{
 		Common: superschema.SchemaDetails{
 			MarkdownDescription: "The project",
@@ -48,7 +50,14 @@ func projectSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.Int64Attribute{
-					Required: true,
+					Optional: true,
+					Computed: true,
+					Validators: []validator.Int64{
+						int64validator.ExactlyOneOf(
+							path.MatchRoot("id"),
+							path.MatchRoot("name"),
+						),
+					},
 				},
 			},
 			"name": superschema.StringAttribute{
@@ -59,7 +68,14 @@ func projectSchema() superschema.Schema {
 					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
+					Optional: true,
 					Computed: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(
+							path.MatchRoot("id"),
+							path.MatchRoot("name"),
+						),
+					},
 				},
 			},
 			"created": superschema.StringAttribute{

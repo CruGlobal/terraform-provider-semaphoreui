@@ -46,14 +46,18 @@ func (d *projectsDataSource) Metadata(_ context.Context, req datasource.Metadata
 }
 
 type projectsDataSourceModel struct {
-	Projects []projectModel `tfsdk:"projects"`
+	Projects []ProjectModel `tfsdk:"projects"`
 }
 
 // Schema defines the schema for the data source.
 func (d *projectsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	projectAttributes := projectSchema().GetDataSource(ctx).Attributes
+	projectAttributes := ProjectSchema().GetDataSource(ctx).Attributes
 	projectAttributes["id"] = schema.Int64Attribute{
 		MarkdownDescription: "The ID of the project.",
+		Computed:            true,
+	}
+	projectAttributes["name"] = schema.StringAttribute{
+		MarkdownDescription: "Project name.",
 		Computed:            true,
 	}
 	resp.Schema = schema.Schema{
@@ -84,7 +88,7 @@ func (d *projectsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	for _, project := range response.Payload {
-		state.Projects = append(state.Projects, projectModel{
+		state.Projects = append(state.Projects, ProjectModel{
 			ID:               types.Int64Value(project.ID),
 			Created:          types.StringValue(project.Created),
 			Name:             types.StringValue(project.Name),

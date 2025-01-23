@@ -21,7 +21,7 @@ type ExternalUserModel struct {
 func ExternalUserSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The external user resource allows you to lookup an external User in SemaphoreUI. This special data source will create the external user in SemaphoreUI if they do not exist.",
+			MarkdownDescription: "The external user data source allows you to lookup an external User in SemaphoreUI. This special data source will create the external user in SemaphoreUI if they do not exist.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"username": superschema.StringAttribute{

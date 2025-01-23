@@ -15,7 +15,7 @@ import (
 func testAccExternalUserCleanup(s *terraform.State) error {
 	// loop though each semaphoreui_external_user and ensure they are deleted
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "data.semaphoreui_external_user" && rs.Type != "semaphoreui_external_user" {
+		if rs.Type != "semaphoreui_external_user" {
 			continue
 		}
 
@@ -81,6 +81,7 @@ func TestAcc_ExternalUserDataSource_basicUsernameNameEmail(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccExternalUserCleanup,
 		Steps: []resource.TestStep{
 			// Read testing
 			{

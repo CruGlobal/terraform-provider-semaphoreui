@@ -87,7 +87,12 @@ resource "semaphoreui_project_environment" "test" {
   project_id = semaphoreui_project.test.id
   name       = "Env-%[1]s"
 }
-`, nameSuffix)
+
+resource "semaphoreui_project_view" "test" {
+  project_id = semaphoreui_project.test.id
+  title      = "Test View"
+  position   = 0
+}`, nameSuffix)
 }
 
 func testAccProjectTemplateConfig(nameSuffix string, extras string) string {
@@ -181,6 +186,7 @@ func TestAcc_ProjectTemplateResource_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "vaults"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "build"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "deploy"),
+					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "view_id"),
 
 					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "id"),
 					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "project_id"),
@@ -205,6 +211,7 @@ arguments = [
   "--help",
   "--verbose",
 ]
+view_id = semaphoreui_project_view.test.id
 `),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
@@ -229,6 +236,7 @@ arguments = [
 					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "inventory_id"),
 					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "environment_id"),
 					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "repository_id"),
+					resource.TestCheckResourceAttrSet("semaphoreui_project_template.test", "view_id"),
 				),
 			},
 			// Delete testing

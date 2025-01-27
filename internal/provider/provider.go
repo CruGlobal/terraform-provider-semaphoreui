@@ -223,6 +223,7 @@ func (p *SemaphoreUIProvider) Resources(ctx context.Context) []func() resource.R
 		NewProjectScheduleResource,
 		NewProjectTemplateResource,
 		NewProjectUserResource,
+		NewProjectViewResource,
 		NewUserResource,
 	}
 }
@@ -239,6 +240,7 @@ func (p *SemaphoreUIProvider) DataSources(ctx context.Context) []func() datasour
 		NewProjectsDataSource,
 		NewProjectTemplateDataSource,
 		NewProjectUserDataSource,
+		NewProjectViewDataSource,
 		NewUserDataSource,
 	}
 }

@@ -71,7 +71,7 @@ type PutProjectProjectIDViewsViewIDParams struct {
 	ProjectID int64
 
 	// View.
-	View *models.ViewRequest
+	View *models.View
 
 	/* ViewID.
 
@@ -144,13 +144,13 @@ func (o *PutProjectProjectIDViewsViewIDParams) SetProjectID(projectID int64) {
 }
 
 // WithView adds the view to the put project project ID views view ID params
-func (o *PutProjectProjectIDViewsViewIDParams) WithView(view *models.ViewRequest) *PutProjectProjectIDViewsViewIDParams {
+func (o *PutProjectProjectIDViewsViewIDParams) WithView(view *models.View) *PutProjectProjectIDViewsViewIDParams {
 	o.SetView(view)
 	return o
 }
 
 // SetView adds the view to the put project project ID views view ID params
-func (o *PutProjectProjectIDViewsViewIDParams) SetView(view *models.ViewRequest) {
+func (o *PutProjectProjectIDViewsViewIDParams) SetView(view *models.View) {
 	o.View = view
 }
 

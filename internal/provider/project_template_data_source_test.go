@@ -46,6 +46,12 @@ resource "semaphoreui_project_environment" "test" {
   }]
 }
 
+resource "semaphoreui_project_view" "test" {
+  project_id = semaphoreui_project.test.id
+  title      = "Title"
+  position   = 2
+}
+
 # Task Template
 resource "semaphoreui_project_template" "test" {
   project_id     = semaphoreui_project.test.id
@@ -59,6 +65,7 @@ resource "semaphoreui_project_template" "test" {
     "--help",
     "--vvv",
   ]
+  view_id = semaphoreui_project_view.test.id
   allow_override_args_in_task = true
 
   survey_vars = [{
@@ -178,6 +185,7 @@ func TestAcc_ProjectTemplateDataSource_basicID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "environment_id"),
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "repository_id"),
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "inventory_id"),
+					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "view_id"),
 				),
 			},
 		},
@@ -207,6 +215,7 @@ func TestAcc_ProjectTemplateDataSource_basicName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "environment_id"),
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "repository_id"),
 					resource.TestCheckResourceAttrSet("data.semaphoreui_project_template.test", "inventory_id"),
+					resource.TestCheckNoResourceAttr("data.semaphoreui_project_template.test", "view_id"),
 				),
 			},
 		},

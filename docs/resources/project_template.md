@@ -146,6 +146,7 @@ resource "semaphoreui_project_template" "deploy" {
 - `suppress_success_alerts` (Boolean) Suppress success alerts. Value defaults to `false`.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))
 - `vaults` (Attributes List) Ansible Vault Passwords. (see [below for nested schema](#nestedatt--vaults))
+- `view_id` (Number) The view ID that the templates belongs to.
 
 ### Read-Only
 

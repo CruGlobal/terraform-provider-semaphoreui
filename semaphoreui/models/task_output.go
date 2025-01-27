@@ -22,9 +22,6 @@ type TaskOutput struct {
 	// output
 	Output string `json:"output,omitempty"`
 
-	// task
-	Task string `json:"task,omitempty"`
-
 	// task id
 	// Example: 23
 	TaskID int64 `json:"task_id,omitempty"`

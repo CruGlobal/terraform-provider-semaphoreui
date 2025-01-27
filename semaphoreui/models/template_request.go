@@ -96,7 +96,7 @@ type TemplateRequest struct {
 
 	// view id
 	// Minimum: 1
-	ViewID int64 `json:"view_id,omitempty"`
+	ViewID *int64 `json:"view_id,omitempty"`
 }
 
 // Validate validates this template request
@@ -291,7 +291,7 @@ func (m *TemplateRequest) validateViewID(formats strfmt.Registry) error {
 		return nil
 	}
 
-	if err := validate.MinimumInt("view_id", "body", m.ViewID, 1, false); err != nil {
+	if err := validate.MinimumInt("view_id", "body", *m.ViewID, 1, false); err != nil {
 		return err
 	}
 

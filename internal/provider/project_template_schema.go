@@ -26,7 +26,7 @@ type (
 		EnvironmentID types.Int64 `tfsdk:"environment_id"`
 		InventoryID   types.Int64 `tfsdk:"inventory_id"`
 		RepositoryID  types.Int64 `tfsdk:"repository_id"`
-		//ViewID        types.Int64 `tfsdk:"view_id"`
+		ViewID        types.Int64 `tfsdk:"view_id"`
 
 		Name                    types.String `tfsdk:"name"`
 		Description             types.String `tfsdk:"description"`
@@ -277,6 +277,17 @@ func ProjectTemplateSchema() superschema.Schema {
 					Default:  booldefault.StaticBool(false),
 				},
 				DataSource: &schemaD.BoolAttribute{
+					Computed: true,
+				},
+			},
+			"view_id": superschema.Int64Attribute{
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "The view ID that the templates belongs to.",
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true,
+				},
+				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
 				},
 			},

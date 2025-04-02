@@ -38,7 +38,7 @@ resource "semaphoreui_user" "example" {
 
 - `admin` (Boolean) Indicates if the user is an admin. Value defaults to `false`.
 - `alert` (Boolean) Indicates if alerts should be sent to the user's email. Value defaults to `false`.
-- `external` (Boolean) (ForceNew) Indicates if the user is linked to an external identity provider. Value defaults to `false`.
+- `external` (Boolean) <i style="color:red;font-weight: bold">(ForceNew)</i> Indicates if the user is linked to an external identity provider. Value defaults to `false`.
 - `password` (String, Sensitive) Login Password. This value is never returned by the API and will be an empty string after import.
 
 ### Read-Only

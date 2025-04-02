@@ -31,7 +31,7 @@ resource "semaphoreui_project" "example" {
 
 - `alert` (Boolean) Allow alerts for this project. Value defaults to `false`.
 - `alert_chat` (String) Telegram chat ID.
-- `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited. Value must be at least 0. Value defaults to `0`.
+- `max_parallel_tasks` (Number) Maximum number of parallel tasks, `0` for unlimited. Value defaults to `0`. Value must be at least 0.
 
 ### Read-Only
 

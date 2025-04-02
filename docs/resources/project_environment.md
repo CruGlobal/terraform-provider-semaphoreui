@@ -54,7 +54,7 @@ resource "semaphoreui_project_environment" "environment" {
 ### Required
 
 - `name` (String) The display name of the environment.
-- `project_id` (Number) (ForceNew) The project ID that the environment belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the environment belongs to.
 
 ### Optional
 

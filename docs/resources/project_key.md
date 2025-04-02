@@ -48,7 +48,7 @@ resource "semaphoreui_project_key" "none" {
 ### Required
 
 - `name` (String) The display name of the key.
-- `project_id` (Number) (ForceNew) The project ID that the key belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the key belongs to.
 
 ### Optional
 

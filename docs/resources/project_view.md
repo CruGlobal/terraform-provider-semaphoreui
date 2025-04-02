@@ -30,7 +30,7 @@ resource "semaphoreui_project_view" "view" {
 ### Required
 
 - `position` (Number) The position of the view in the project. Value must be at least 0.
-- `project_id` (Number) (ForceNew) The project ID that the template belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the template belongs to.
 - `title` (String) Title of the view.
 
 ### Read-Only

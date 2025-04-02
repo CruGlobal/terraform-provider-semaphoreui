@@ -4,15 +4,15 @@ name: Tests
 # This GitHub action runs your tests for each pull request.
 on:
   pull_request:
-    branches:
-      - main
+    branches-ignore:
+      - 'release-please*'
 
 # Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
 
 jobs:
-  # Ensure project builds before running testing matrix
+  # Ensure project builds before running tests
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -25,10 +25,10 @@ jobs:
           cache: true
       - run: go mod download
       - run: go build -v .
-      - name: Run linters
-        uses: golangci/golangci-lint-action@v6
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: latest
+          version: v2.0
           args: --tests=false
 
   generate:

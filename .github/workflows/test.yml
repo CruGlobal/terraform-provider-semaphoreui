@@ -4,8 +4,8 @@ name: Tests
 # This GitHub action runs your tests for each pull request.
 on:
   pull_request:
-    branches:
-      - main
+    branches-ignore:
+      - 'release-please*'
 
 # Testing only needs permissions to read the repository contents.
 permissions:

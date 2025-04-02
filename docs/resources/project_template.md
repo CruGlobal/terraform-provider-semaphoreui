@@ -131,7 +131,7 @@ resource "semaphoreui_project_template" "deploy" {
 - `inventory_id` (Number) The inventory ID that the template uses.
 - `name` (String) The display name of the template.
 - `playbook` (String) The playbook/script filename. Must be a relative path (path/to/inventory).
-- `project_id` (Number) (ForceNew) The project ID that the template belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the template belongs to.
 - `repository_id` (Number) The repository ID that the template uses.
 
 ### Optional

@@ -1,6 +1,7 @@
 module terraform-provider-semaphoreui
 
 go 1.24.1
+
 require (
 	github.com/adhocore/gronx v1.19.5
 	github.com/go-openapi/errors v0.22.1

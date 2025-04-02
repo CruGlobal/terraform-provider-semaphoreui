@@ -39,7 +39,7 @@ resource "semaphoreui_project_repository" "repository" {
 
 - `branch` (String) The branch of the repository to use. Use an empty string for path based repositories.
 - `name` (String) The display name of the repository.
-- `project_id` (Number) (ForceNew) The project ID that the repository belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the repository belongs to.
 - `ssh_key_id` (Number) The Project Key ID to use for accessing the Git repository. This attribute is required for all repositories in SemaphoreUI. You should set it to the ID of a Key of type "`none`" if the repository doesn't require credentials.
 - `url` (String) The URI or path of the Git repository. SemaphoreUI supports `ssh`, `http`, `https`, `file` and `git` URI schemes as well as absolute paths.
 

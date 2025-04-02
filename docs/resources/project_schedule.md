@@ -39,8 +39,8 @@ resource "semaphoreui_project_schedule" "schedule" {
 - `cron_format` (String) The cron format of the schedule. Must be valid [Cron Expression](https://github.com/adhocore/gronx?tab=readme-ov-file#cron-expression).
 - `enabled` (Boolean) Whether the schedule is enabled.
 - `name` (String) The display name of the schedule.
-- `project_id` (Number) (ForceNew) The project ID that the schedule belongs to.
-- `template_id` (Number) (ForceNew) The template ID that the schedule executes.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the schedule belongs to.
+- `template_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The template ID that the schedule executes.
 
 ### Read-Only
 

@@ -89,7 +89,7 @@ resource "semaphoreui_project_inventory" "terraform" {
 ### Required
 
 - `name` (String) The display name of the inventory or workspace.
-- `project_id` (Number) (ForceNew) The project ID that the inventory belongs to.
+- `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the inventory belongs to.
 - `ssh_key_id` (Number) The Project Key ID to use for accessing hosts in the inventory. This attribute is required for all inventory types in SemaphoreUI. You should set it to the ID of a Key of type `none` if the inventory doesn't require credentials, or for Workspace type inventories.
 
 ### Optional

@@ -1,9 +1,9 @@
 # Configure the SemaphoreUI provider using required_providers.
 terraform {
   required_providers {
-    semaphore = {
+    semaphoreui = {
       source  = "CruGlobal/semaphoreui"
-      version = "~> 1.0.0"
+      version = "~> 1.3.1"
     }
   }
 }

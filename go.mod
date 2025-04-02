@@ -1,6 +1,6 @@
 module terraform-provider-semaphoreui
 
-go 1.22.8
+go 1.24.1
 
 require (
 	github.com/adhocore/gronx v1.19.5

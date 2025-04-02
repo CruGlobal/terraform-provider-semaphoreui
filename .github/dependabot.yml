@@ -9,6 +9,11 @@ updates:
     labels:
       - "dependencies"
       - "patch"
+    groups:
+      gomod-updates:
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -18,3 +23,8 @@ updates:
     labels:
       - "dependencies"
       - "patch"
+    groups:
+      action-updates:
+        update-types:
+          - minor
+          - patch

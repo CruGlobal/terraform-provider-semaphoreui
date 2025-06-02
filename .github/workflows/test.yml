@@ -52,19 +52,20 @@ jobs:
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'task generate' command and commit."; exit 1)
 
-  # Run acceptance tests in a matrix with Terraform CLI versions
+  # Run acceptance tests in a matrix with Semaphore UI versions
   test:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        # list whatever Terraform versions here you would like to support
-#        terraform:
-#          - '1.8.*'
-#          - '1.9.*'
+    strategy:
+      fail-fast: false
+      matrix:
+        semaphore:
+          - 'v2.11.2'
+          - 'v2.12.17'
+          - 'v2.13.15'
+          - 'v2.14.12'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -73,11 +74,13 @@ jobs:
           cache: true
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.9.x' # '${{ matrix.terraform }}
+          terraform_version: '1.12.x'
           terraform_wrapper: false
       - uses: arduino/setup-task@v2.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: go mod download
       - run: task testacc
+        env:
+            SEMAPHORE_VERSION: ${{ matrix.semaphore }}
         timeout-minutes: 10

@@ -55,6 +55,7 @@ tasks:
       API_TOKEN:
         sh: head -c32 /dev/urandom | base64
     env:
+      SEMAPHORE_VERSION: v2.11.2
       SEMAPHOREUI_HOSTNAME: localhost
       SEMAPHOREUI_PORT: 13000
       SEMAPHOREUI_PROTOCOL: http

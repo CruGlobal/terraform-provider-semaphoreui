@@ -5,9 +5,10 @@ The [SemaphoreUI Provider](https://registry.terraform.io/providers/CruGlobal/sem
 This project uses Conventional Commits in order to automatically manage releases as well as keeping the CHANGELOG.md updated. CHANGELOG follows the Keep a Changelog spec.
 
 ### Requirements
-This provider requires an installation of SemaphoreUI running at least version v2.11.2.
+This provider requires an installation of [SemaphoreUI](https://semaphoreui.com/).
+
+Provider version 1.x works with SemaphoreUI version 2.11.x or 2.12.x.
 
 ### SemaphoreUI API Client
 The SemaphoreUI API client is generated from the Swagger (OpenAPI-2.0) [api-docs.yml](https://github.com/semaphoreui/semaphore/blob/develop/api-docs.yml) using [go-swagger](https://goswagger.io/go-swagger/).
 To re-generate the client, ensure you have [go-swagger](https://goswagger.io/go-swagger/install/install-binary/) installed and configured on your system and then run `task client`.
-

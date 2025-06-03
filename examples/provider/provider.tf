@@ -3,7 +3,7 @@ terraform {
   required_providers {
     semaphoreui = {
       source  = "CruGlobal/semaphoreui"
-      version = "~> 1.3.1"
+      version = "~> 1.0"
     }
   }
 }

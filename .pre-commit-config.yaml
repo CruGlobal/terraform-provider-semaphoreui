@@ -2,11 +2,15 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.62.2
+    rev: v2.1.6
     hooks:
       - id: golangci-lint
         args:
           - "--tests=false"
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.96.2
     hooks:

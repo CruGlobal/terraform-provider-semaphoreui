@@ -9,7 +9,7 @@ description: |-
   
   fetch("/api/user/tokens", {
     method: "POST",
-    headers: {'Content-Type': 'application/json'}, 
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({})
   }).then(res => res.json()).then(data => console.log("api_token = " + data.id));
   
@@ -25,7 +25,7 @@ You can generate a Semaphore API token by logging into Semaphore, opening the br
 ```javascript
 fetch("/api/user/tokens", {
   method: "POST",
-  headers: {'Content-Type': 'application/json'}, 
+  headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({})
 }).then(res => res.json()).then(data => console.log("api_token = " + data.id));
 ```
@@ -39,7 +39,7 @@ terraform {
   required_providers {
     semaphoreui = {
       source  = "CruGlobal/semaphoreui"
-      version = "~> 1.3.1"
+      version = "~> 1.0"
     }
   }
 }
@@ -63,3 +63,4 @@ provider "semaphoreui" {
 - `path` (String) SemaphoreUI API base path. This can also be defined by the `SEMAPHOREUI_PATH` environment variable. Default: `/api`.
 - `port` (Number) SemaphoreUI API port. This can also be defined by the `SEMAPHOREUI_PORT` environment variable. Default: `3000`.
 - `protocol` (String) SemaphoreUI API protocol. This can also be defined by the `SEMAPHOREUI_PROTOCOL` environment variable. Must be one of `http` or `https`. Default: `https`.
+- `tls_skip_verify` (Boolean) Skip TLS verification for the SemaphoreUI API when using https. This can also be defined by the `SEMAPHOREUI_TLS_SKIP_VERIFY` environment variable.  Default: `false`.

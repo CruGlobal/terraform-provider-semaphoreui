@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"net/http"
 	"os"
 	"strconv"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
@@ -32,11 +34,12 @@ type SemaphoreUIProvider struct {
 
 // SemaphoreUIProviderModel describes the provider data model.
 type SemaphoreUIProviderModel struct {
-	Hostname types.String `tfsdk:"hostname"`
-	Port     types.Int32  `tfsdk:"port"`
-	Path     types.String `tfsdk:"path"`
-	Protocol types.String `tfsdk:"protocol"`
-	ApiToken types.String `tfsdk:"api_token"`
+	Hostname      types.String `tfsdk:"hostname"`
+	Port          types.Int32  `tfsdk:"port"`
+	Path          types.String `tfsdk:"path"`
+	Protocol      types.String `tfsdk:"protocol"`
+	ApiToken      types.String `tfsdk:"api_token"`
+	TlsSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
 }
 
 func (p *SemaphoreUIProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -54,7 +57,7 @@ You can generate a Semaphore API token by logging into Semaphore, opening the br
 ` + "```javascript" + `
 fetch("/api/user/tokens", {
   method: "POST",
-  headers: {'Content-Type': 'application/json'}, 
+  headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({})
 }).then(res => res.json()).then(data => console.log("api_token = " + data.id));
 ` + "```" + `
@@ -83,6 +86,10 @@ The token will be printed in the console. This token will grant the same level o
 			"api_token": schema.StringAttribute{
 				MarkdownDescription: "SemaphoreUI API token. This can also be defined by the `SEMAPHOREUI_API_TOKEN` environment variable.",
 				Sensitive:           true,
+				Optional:            true,
+			},
+			"tls_skip_verify": schema.BoolAttribute{
+				MarkdownDescription: "Skip TLS verification for the SemaphoreUI API when using https. This can also be defined by the `SEMAPHOREUI_TLS_SKIP_VERIFY` environment variable.  Default: `false`.",
 				Optional:            true,
 			},
 		},
@@ -143,6 +150,15 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 		)
 	}
 
+	if config.TlsSkipVerify.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("tls_skip_verify"),
+			"Unknown SemaphoreUI TLS Skip Verify",
+			"The provider cannot create the SemaphoreUI API client as there is an unknown configuration value for the SemaphoreUI TLS Skip Verify. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the SEMAPHOREUI_TLS_SKIP_VERIFY environment variable.",
+		)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -154,6 +170,7 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 	basePath := os.Getenv("SEMAPHOREUI_PATH")
 	protocol := os.Getenv("SEMAPHOREUI_PROTOCOL")
 	apiToken := os.Getenv("SEMAPHOREUI_API_TOKEN")
+	tlsSkipVerify := os.Getenv("SEMAPHOREUI_TLS_SKIP_VERIFY")
 
 	if !config.Hostname.IsNull() {
 		hostname = config.Hostname.ValueString()
@@ -169,6 +186,9 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 	}
 	if !config.ApiToken.IsNull() {
 		apiToken = config.ApiToken.ValueString()
+	}
+	if !config.TlsSkipVerify.IsNull() {
+		tlsSkipVerify = strconv.FormatBool(config.TlsSkipVerify.ValueBool())
 	}
 
 	// If any of the expected configurations are missing, use defaults or return
@@ -200,15 +220,24 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 	if basePath == "" {
 		basePath = "/api" // Default
 	}
+	if tlsSkipVerify == "" {
+		tlsSkipVerify = "false" // Default
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	var rt *httptransport.Runtime
+	if tlsSkipVerify == "true" {
+		transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+		httpClient := &http.Client{Transport: transport}
+		rt = httptransport.NewWithClient(fmt.Sprintf("%s:%s", hostname, port), basePath, []string{protocol}, httpClient)
+	} else {
+		rt = httptransport.New(fmt.Sprintf("%s:%s", hostname, port), basePath, []string{protocol})
+	}
+	rt.DefaultAuthentication = httptransport.BearerToken(apiToken)
 
-	r := httptransport.New(fmt.Sprintf("%s:%s", hostname, port), basePath, []string{protocol})
-	r.DefaultAuthentication = httptransport.BearerToken(apiToken)
-
-	client := apiclient.New(r, strfmt.Default)
+	client := apiclient.New(rt, strfmt.Default)
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }

@@ -20,11 +20,11 @@ import (
 type Project struct {
 
 	// alert
-	Alert bool `json:"alert,omitempty"`
+	Alert *bool `json:"alert,omitempty"`
 
 	// alert chat
 	// Example: Test
-	AlertChat string `json:"alert_chat,omitempty"`
+	AlertChat *string `json:"alert_chat,omitempty"`
 
 	// created
 	Created string `json:"created,omitempty"`

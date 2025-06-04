@@ -45,6 +45,10 @@ type IntegrationExtractValue struct {
 	// variable
 	// Example: variable
 	Variable string `json:"variable,omitempty"`
+
+	// variable type
+	// Enum: ["environment","task"]
+	VariableType string `json:"variable_type,omitempty"`
 }
 
 // Validate validates this integration extract value
@@ -56,6 +60,10 @@ func (m *IntegrationExtractValue) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateValueSource(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVariableType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -146,6 +154,48 @@ func (m *IntegrationExtractValue) validateValueSource(formats strfmt.Registry) e
 
 	// value enum
 	if err := m.validateValueSourceEnum("value_source", "body", m.ValueSource); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var integrationExtractValueTypeVariableTypePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["environment","task"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		integrationExtractValueTypeVariableTypePropEnum = append(integrationExtractValueTypeVariableTypePropEnum, v)
+	}
+}
+
+const (
+
+	// IntegrationExtractValueVariableTypeEnvironment captures enum value "environment"
+	IntegrationExtractValueVariableTypeEnvironment string = "environment"
+
+	// IntegrationExtractValueVariableTypeTask captures enum value "task"
+	IntegrationExtractValueVariableTypeTask string = "task"
+)
+
+// prop value enum
+func (m *IntegrationExtractValue) validateVariableTypeEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, integrationExtractValueTypeVariableTypePropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *IntegrationExtractValue) validateVariableType(formats strfmt.Registry) error {
+	if swag.IsZero(m.VariableType) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateVariableTypeEnum("variable_type", "body", m.VariableType); err != nil {
 		return err
 	}
 

@@ -39,6 +39,10 @@ type IntegrationExtractValueRequest struct {
 	// variable
 	// Example: variable
 	Variable string `json:"variable,omitempty"`
+
+	// variable type
+	// Enum: ["environment","task"]
+	VariableType string `json:"variable_type,omitempty"`
 }
 
 // Validate validates this integration extract value request
@@ -50,6 +54,10 @@ func (m *IntegrationExtractValueRequest) Validate(formats strfmt.Registry) error
 	}
 
 	if err := m.validateValueSource(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVariableType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -140,6 +148,48 @@ func (m *IntegrationExtractValueRequest) validateValueSource(formats strfmt.Regi
 
 	// value enum
 	if err := m.validateValueSourceEnum("value_source", "body", m.ValueSource); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var integrationExtractValueRequestTypeVariableTypePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["environment","task"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		integrationExtractValueRequestTypeVariableTypePropEnum = append(integrationExtractValueRequestTypeVariableTypePropEnum, v)
+	}
+}
+
+const (
+
+	// IntegrationExtractValueRequestVariableTypeEnvironment captures enum value "environment"
+	IntegrationExtractValueRequestVariableTypeEnvironment string = "environment"
+
+	// IntegrationExtractValueRequestVariableTypeTask captures enum value "task"
+	IntegrationExtractValueRequestVariableTypeTask string = "task"
+)
+
+// prop value enum
+func (m *IntegrationExtractValueRequest) validateVariableTypeEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, integrationExtractValueRequestTypeVariableTypePropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *IntegrationExtractValueRequest) validateVariableType(formats strfmt.Registry) error {
+	if swag.IsZero(m.VariableType) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateVariableTypeEnum("variable_type", "body", m.VariableType); err != nil {
 		return err
 	}
 

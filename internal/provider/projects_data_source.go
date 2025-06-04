@@ -88,13 +88,20 @@ func (d *projectsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	for _, project := range response.Payload {
+		var maxParallelTasks types.Int64
+		if project.MaxParallelTasks == nil {
+			maxParallelTasks = types.Int64Value(0)
+		} else {
+			maxParallelTasks = types.Int64PointerValue(project.MaxParallelTasks)
+		}
+
 		state.Projects = append(state.Projects, ProjectModel{
 			ID:               types.Int64Value(project.ID),
 			Created:          types.StringValue(project.Created),
 			Name:             types.StringValue(project.Name),
-			Alert:            types.BoolValue(project.Alert),
-			AlertChat:        types.StringValue(project.AlertChat),
-			MaxParallelTasks: types.Int64Value(*project.MaxParallelTasks),
+			Alert:            types.BoolPointerValue(project.Alert),
+			AlertChat:        types.StringPointerValue(project.AlertChat),
+			MaxParallelTasks: maxParallelTasks,
 		})
 	}
 

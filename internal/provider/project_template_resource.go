@@ -74,7 +74,7 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 		model.GitBranch = template.GitBranch.ValueString()
 	}
 	if !template.ViewID.IsNull() && !template.ViewID.IsUnknown() {
-		model.ViewID = template.ViewID.ValueInt64Pointer()
+		model.ViewID = template.ViewID.ValueInt64()
 	}
 
 	if len(template.Arguments.Elements()) != 0 {
@@ -185,8 +185,8 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 		model.GitBranch = prev.GitBranch
 	}
 
-	if request.ViewID != nil {
-		model.ViewID = types.Int64PointerValue(request.ViewID)
+	if request.ViewID != 0 {
+		model.ViewID = types.Int64Value(request.ViewID)
 	} else {
 		model.ViewID = prev.ViewID
 	}

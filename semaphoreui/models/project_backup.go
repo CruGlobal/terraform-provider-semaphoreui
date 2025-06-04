@@ -854,6 +854,9 @@ type ProjectBackupTemplatesItems0 struct {
 	// allow override args in task
 	AllowOverrideArgsInTask bool `json:"allow_override_args_in_task,omitempty"`
 
+	// allow override branch in task
+	AllowOverrideBranchInTask bool `json:"allow_override_branch_in_task,omitempty"`
+
 	// arguments
 	Arguments string `json:"arguments,omitempty"`
 

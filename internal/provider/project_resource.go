@@ -54,25 +54,26 @@ func (r *projectResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 }
 
 func convertProjectResponseToProjectModel(payload *models.Project) ProjectModel {
-	var alertChat types.String
-	if payload.AlertChat == "" {
-		alertChat = types.StringNull()
+	var maxParallelTasks types.Int64
+	if payload.MaxParallelTasks == nil {
+		maxParallelTasks = types.Int64Value(0)
 	} else {
-		alertChat = types.StringValue(payload.AlertChat)
+		maxParallelTasks = types.Int64PointerValue(payload.MaxParallelTasks)
 	}
 
-	//var projType types.String
-	//if payload.Type == "" {
-	//	projType = types.StringNull()
-	//} else {
-	//	projType = types.StringValue(payload.Type)
-	//}
+	var alert types.Bool
+	if payload.Alert == nil {
+		alert = types.BoolValue(false)
+	} else {
+		alert = types.BoolPointerValue(payload.Alert)
+	}
+
 	return ProjectModel{
 		ID:               types.Int64Value(payload.ID),
 		Name:             types.StringValue(payload.Name),
-		Alert:            types.BoolValue(payload.Alert),
-		AlertChat:        alertChat,
-		MaxParallelTasks: types.Int64Value(*payload.MaxParallelTasks),
+		Alert:            alert,
+		AlertChat:        types.StringPointerValue(payload.AlertChat),
+		MaxParallelTasks: maxParallelTasks,
 		Created:          types.StringValue(payload.Created),
 		//Type:             projType,
 	}

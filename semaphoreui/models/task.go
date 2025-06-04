@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -16,9 +17,6 @@ import (
 //
 // swagger:model Task
 type Task struct {
-
-	// debug
-	Debug bool `json:"debug,omitempty"`
 
 	// environment
 	Environment string `json:"environment,omitempty"`
@@ -32,6 +30,12 @@ type Task struct {
 
 	// limit
 	Limit string `json:"limit,omitempty"`
+
+	// message
+	Message string `json:"message,omitempty"`
+
+	// params
+	Params *TaskParams `json:"params,omitempty"`
 
 	// playbook
 	Playbook string `json:"playbook,omitempty"`
@@ -48,11 +52,69 @@ type Task struct {
 
 // Validate validates this task
 func (m *Task) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateParams(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 
-// ContextValidate validates this task based on context it is used
+func (m *Task) validateParams(formats strfmt.Registry) error {
+	if swag.IsZero(m.Params) { // not required
+		return nil
+	}
+
+	if m.Params != nil {
+		if err := m.Params.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("params")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("params")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this task based on the context it is used
 func (m *Task) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateParams(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Task) contextValidateParams(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Params != nil {
+
+		if swag.IsZero(m.Params) { // not required
+			return nil
+		}
+
+		if err := m.Params.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("params")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("params")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -67,6 +129,52 @@ func (m *Task) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *Task) UnmarshalBinary(b []byte) error {
 	var res Task
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// TaskParams task params
+//
+// swagger:model TaskParams
+type TaskParams struct {
+
+	// debug
+	Debug bool `json:"debug,omitempty"`
+
+	// diff
+	Diff bool `json:"diff,omitempty"`
+
+	// dry run
+	DryRun bool `json:"dry_run,omitempty"`
+
+	// limit
+	Limit string `json:"limit,omitempty"`
+}
+
+// Validate validates this task params
+func (m *TaskParams) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this task params based on context it is used
+func (m *TaskParams) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *TaskParams) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *TaskParams) UnmarshalBinary(b []byte) error {
+	var res TaskParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

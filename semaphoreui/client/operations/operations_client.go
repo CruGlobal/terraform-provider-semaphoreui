@@ -85,6 +85,8 @@ func WithAcceptTextPlainCharsetUTF8(r *runtime.ClientOperation) {
 
 // ClientService is the interface for Client methods
 type ClientService interface {
+	GetApps(params *GetAppsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAppsOK, error)
+
 	GetEvents(params *GetEventsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsOK, error)
 
 	GetEventsLast(params *GetEventsLastParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEventsLastOK, error)
@@ -95,7 +97,48 @@ type ClientService interface {
 
 	GetWs(params *GetWsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetWsOK, error)
 
+	PostDebugGc(params *PostDebugGcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDebugGcNoContent, error)
+
 	SetTransport(transport runtime.ClientTransport)
+}
+
+/*
+GetApps gets apps
+*/
+func (a *Client) GetApps(params *GetAppsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAppsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetAppsParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetApps",
+		Method:             "GET",
+		PathPattern:        "/apps",
+		ProducesMediaTypes: []string{"application/json", "text/plain; charset=utf-8"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetAppsReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetAppsOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetApps: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
 }
 
 /*
@@ -291,6 +334,47 @@ func (a *Client) GetWs(params *GetWsParams, authInfo runtime.ClientAuthInfoWrite
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetWs: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+PostDebugGc garbages collector
+
+Run the garbage collector
+*/
+func (a *Client) PostDebugGc(params *PostDebugGcParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDebugGcNoContent, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostDebugGcParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "PostDebugGc",
+		Method:             "POST",
+		PathPattern:        "/debug/gc",
+		ProducesMediaTypes: []string{"application/json", "text/plain; charset=utf-8"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostDebugGcReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PostDebugGcNoContent)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for PostDebugGc: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

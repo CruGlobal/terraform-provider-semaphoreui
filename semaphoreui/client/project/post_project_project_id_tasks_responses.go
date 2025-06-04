@@ -131,6 +131,9 @@ type PostProjectProjectIDTasksBody struct {
 	// limit
 	Limit string `json:"limit,omitempty"`
 
+	// message
+	Message string `json:"message,omitempty"`
+
 	// playbook
 	Playbook string `json:"playbook,omitempty"`
 

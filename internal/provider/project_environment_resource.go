@@ -90,10 +90,11 @@ func (r *projectEnvironmentResource) Schema(ctx context.Context, _ resource.Sche
 }
 
 func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env ProjectEnvironmentModel, prev *ProjectEnvironmentModel) *models.EnvironmentRequest {
-	model := models.EnvironmentRequest{
+	model := &models.EnvironmentRequest{
 		ProjectID: env.ProjectID.ValueInt64(),
 		Name:      env.Name.ValueString(),
 	}
+
 	if !env.ID.IsNull() && !env.ID.IsUnknown() {
 		model.ID = env.ID.ValueInt64()
 	}
@@ -114,51 +115,43 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 
 	var secrets []*models.EnvironmentSecretRequest
 	var envSecrets, prevSecrets []ProjectEnvironmentSecretModel
-	if env.Secrets.IsNull() || env.Secrets.IsUnknown() {
-		envSecrets = []ProjectEnvironmentSecretModel{}
-	} else {
+
+	if !env.Secrets.IsNull() && !env.Secrets.IsUnknown() {
 		env.Secrets.ElementsAs(ctx, &envSecrets, false)
 	}
-	if prev.Secrets.IsUnknown() || prev.Secrets.IsNull() {
-		prevSecrets = []ProjectEnvironmentSecretModel{}
-	} else {
+	if !prev.Secrets.IsNull() && !prev.Secrets.IsUnknown() {
 		prev.Secrets.ElementsAs(ctx, &prevSecrets, false)
 	}
 
-	for _, secret := range envSecrets {
-		modelSecret := models.EnvironmentSecretRequest{
-			Name: secret.Name.ValueString(),
-			Type: secret.Type.ValueString(),
+	for _, s := range envSecrets {
+		sec := &models.EnvironmentSecretRequest{
+			Name: s.Name.ValueString(),
+			Type: s.Type.ValueString(),
 		}
-		// Create all secrets from env missing an ID
-		if secret.ID.IsUnknown() || secret.ID.IsNull() {
-			modelSecret.Operation = "create"
-			modelSecret.Secret = secret.Value.ValueString()
+
+		if s.ID.IsNull() || s.ID.IsUnknown() {
+			sec.Operation = "create"
+			sec.Secret = s.Value.ValueString()
 		} else {
-			modelSecret.ID = secret.ID.ValueInt64()
-			// Find the previous secret
-			prevSecret := prev.Secret(ctx, secret.ID)
+			sec.ID = s.ID.ValueInt64()
+			prevSecret := prev.Secret(ctx, s.ID)
 			if prevSecret != nil {
-				// Update if any field has changed
-				if !secret.Name.Equal(prevSecret.Name) || !secret.Value.Equal(prevSecret.Value) || !secret.Type.Equal(prevSecret.Type) {
-					modelSecret.Operation = "update"
-					if !secret.Name.Equal(prevSecret.Name) {
-						modelSecret.Name = secret.Name.ValueString()
+				if !s.Name.Equal(prevSecret.Name) || !s.Type.Equal(prevSecret.Type) || !s.Value.Equal(prevSecret.Value) {
+					sec.Operation = "update"
+					if !s.Value.Equal(prevSecret.Value) {
+						sec.Secret = s.Value.ValueString()
 					}
 				}
 			}
 		}
-		secrets = append(secrets, &modelSecret)
+		secrets = append(secrets, sec)
 	}
 
-	// Delete all secrets from prev with an ID missing from env
-	for _, prevSecret := range prevSecrets {
-		secret := env.Secret(ctx, prevSecret.ID)
-		if secret == nil {
+	for _, ps := range prevSecrets {
+		if env.Secret(ctx, ps.ID) == nil {
 			secrets = append(secrets, &models.EnvironmentSecretRequest{
-				ID: prevSecret.ID.ValueInt64(),
-				// Can't delete a secret without sending the Type
-				Type:      prevSecret.Type.ValueString(),
+				ID:        ps.ID.ValueInt64(),
+				Type:      ps.Type.ValueString(),
 				Operation: "delete",
 			})
 		}
@@ -166,7 +159,7 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 
 	model.Secrets = secrets
 
-	return &model
+	return model
 }
 
 var _ sort.Interface = ByEnvironmentID{}

@@ -145,6 +145,12 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 					if !secret.Name.Equal(prevSecret.Name) {
 						modelSecret.Name = secret.Name.ValueString()
 					}
+					if !secret.Value.Equal(prevSecret.Value) {
+						modelSecret.Secret = secret.Value.ValueString()
+					}
+					if !secret.Type.Equal(prevSecret.Type) {
+						modelSecret.Type = secret.Type.ValueString()
+					}
 				}
 			}
 		}

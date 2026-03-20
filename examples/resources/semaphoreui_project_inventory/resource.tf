@@ -57,12 +57,22 @@ resource "semaphoreui_project_inventory" "file" {
   }
 }
 
-# Terraform/OpenTofu Workspace Inventory Example
+# Terraform Workspace Inventory Example
 resource "semaphoreui_project_inventory" "terraform" {
   project_id = semaphoreui_project.project.id
   name       = "Terraform Workspace Inventory"
   ssh_key_id = semaphoreui_project_key.none.id
   terraform_workspace = {
+    workspace = "workspace-name"
+  }
+}
+
+# OpenTofu Workspace Inventory Example
+resource "semaphoreui_project_inventory" "tofu" {
+  project_id = semaphoreui_project.project.id
+  name       = "OpenTofu Workspace Inventory"
+  ssh_key_id = semaphoreui_project_key.none.id
+  tofu_workspace = {
     workspace = "workspace-name"
   }
 }

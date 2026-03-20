@@ -3,12 +3,12 @@
 page_title: "semaphoreui_project_inventory Resource - semaphoreui"
 subcategory: ""
 description: |-
-  The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (static, static_yaml, file or terraform_workspace) can be defined per inventory.
+  The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (static, static_yaml, file, terraform_workspace or tofu_workspace) can be defined per inventory.
 ---
 
 # semaphoreui_project_inventory (Resource)
 
-The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (`static`, `static_yaml`, `file` or `terraform_workspace`) can be defined per inventory.
+The project inventory resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (`static`, `static_yaml`, `file`, `terraform_workspace` or `tofu_workspace`) can be defined per inventory.
 
 ## Example Usage
 
@@ -72,12 +72,22 @@ resource "semaphoreui_project_inventory" "file" {
   }
 }
 
-# Terraform/OpenTofu Workspace Inventory Example
+# Terraform Workspace Inventory Example
 resource "semaphoreui_project_inventory" "terraform" {
   project_id = semaphoreui_project.project.id
   name       = "Terraform Workspace Inventory"
   ssh_key_id = semaphoreui_project_key.none.id
   terraform_workspace = {
+    workspace = "workspace-name"
+  }
+}
+
+# OpenTofu Workspace Inventory Example
+resource "semaphoreui_project_inventory" "tofu" {
+  project_id = semaphoreui_project.project.id
+  name       = "OpenTofu Workspace Inventory"
+  ssh_key_id = semaphoreui_project_key.none.id
+  tofu_workspace = {
     workspace = "workspace-name"
   }
 }
@@ -98,6 +108,7 @@ resource "semaphoreui_project_inventory" "terraform" {
 - `static` (Attributes) Static Inventory. (see [below for nested schema](#nestedatt--static))
 - `static_yaml` (Attributes) Static YAML Inventory. (see [below for nested schema](#nestedatt--static_yaml))
 - `terraform_workspace` (Attributes) Terraform Workspace. (see [below for nested schema](#nestedatt--terraform_workspace))
+- `tofu_workspace` (Attributes) OpenTofu Workspace. (see [below for nested schema](#nestedatt--tofu_workspace))
 
 ### Read-Only
 
@@ -146,6 +157,14 @@ Optional:
 Required:
 
 - `workspace` (String) The Terraform workspace name.
+
+
+<a id="nestedatt--tofu_workspace"></a>
+### Nested Schema for `tofu_workspace`
+
+Required:
+
+- `workspace` (String) The OpenTofu workspace name.
 
 ## Import
 

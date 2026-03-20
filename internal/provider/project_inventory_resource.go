@@ -11,7 +11,6 @@ import (
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
-// Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                     = &projectInventoryResource{}
 	_ resource.ResourceWithConfigure        = &projectInventoryResource{}
@@ -44,12 +43,10 @@ func (r *projectInventoryResource) Configure(_ context.Context, req resource.Con
 	r.client = client
 }
 
-// Metadata returns the resource type name.
 func (r *projectInventoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_project_inventory"
 }
 
-// Schema defines the schema for the resource.
 func (r *projectInventoryResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ProjectInventorySchema().GetResource(ctx)
 }
@@ -61,6 +58,7 @@ func (r *projectInventoryResource) ConfigValidators(ctx context.Context) []resou
 			path.MatchRoot("static_yaml"),
 			path.MatchRoot("file"),
 			path.MatchRoot("terraform_workspace"),
+			path.MatchRoot("tofu_workspace"),
 		),
 	}
 }
@@ -90,6 +88,9 @@ func convertProjectInventoryModelToInventoryRequest(inventory ProjectInventoryMo
 	} else if inventory.TerraformWorkspace != nil {
 		model.Type = ProjectInventoryTerraformWorkspace
 		model.Inventory = inventory.TerraformWorkspace.Workspace.ValueString()
+	} else if inventory.TofuWorkspace != nil {
+		model.Type = ProjectInventoryTofuWorkspace
+		model.Inventory = inventory.TofuWorkspace.Workspace.ValueString()
 	}
 
 	return &model
@@ -140,11 +141,14 @@ func convertInventoryResponseToProjectInventoryModel(inventory *models.Inventory
 		model.TerraformWorkspace = &ProjectInventoryTerraformWorkspaceModel{
 			Workspace: types.StringValue(inventory.Inventory),
 		}
+	case ProjectInventoryTofuWorkspace:
+		model.TofuWorkspace = &ProjectInventoryTofuWorkspaceModel{
+			Workspace: types.StringValue(inventory.Inventory),
+		}
 	}
 	return model
 }
 
-// Create creates the resource and sets the initial Terraform state.
 func (r *projectInventoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ProjectInventoryModel
 	diags := req.Plan.Get(ctx, &plan)
@@ -166,7 +170,6 @@ func (r *projectInventoryResource) Create(ctx context.Context, req resource.Crea
 	}
 	plan = convertInventoryResponseToProjectInventoryModel(response.Payload)
 
-	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -174,9 +177,7 @@ func (r *projectInventoryResource) Create(ctx context.Context, req resource.Crea
 	}
 }
 
-// Read refreshes the Terraform state with the latest data.
 func (r *projectInventoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// Get current state
 	var state ProjectInventoryModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -197,7 +198,6 @@ func (r *projectInventoryResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	state = convertInventoryResponseToProjectInventoryModel(response.Payload)
 
-	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -205,9 +205,7 @@ func (r *projectInventoryResource) Read(ctx context.Context, req resource.ReadRe
 	}
 }
 
-// Update updates the resource and sets the updated Terraform state on success.
 func (r *projectInventoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Retrieve values from plan
 	var plan ProjectInventoryModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -228,7 +226,6 @@ func (r *projectInventoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Fetch updated values as PutProjectProjectIDInventoryInventoryID does not return updated project inventory
 	response, err := r.client.Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   plan.ProjectID.ValueInt64(),
 		InventoryID: plan.ID.ValueInt64(),
@@ -242,7 +239,6 @@ func (r *projectInventoryResource) Update(ctx context.Context, req resource.Upda
 	}
 	plan = convertInventoryResponseToProjectInventoryModel(response.Payload)
 
-	// Update resource state with updated project
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -250,9 +246,7 @@ func (r *projectInventoryResource) Update(ctx context.Context, req resource.Upda
 	}
 }
 
-// Delete deletes the resource and removes the Terraform state on success.
 func (r *projectInventoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// Retrieve values from state
 	var state ProjectInventoryModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -260,7 +254,6 @@ func (r *projectInventoryResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	// Delete existing resource
 	_, err := r.client.Project.DeleteProjectProjectIDInventoryInventoryID(&project.DeleteProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   state.ProjectID.ValueInt64(),
 		InventoryID: state.ID.ValueInt64(),

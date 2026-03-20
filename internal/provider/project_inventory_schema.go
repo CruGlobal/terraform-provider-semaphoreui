@@ -24,6 +24,7 @@ type (
 		StaticYaml         *ProjectInventoryStaticYamlModel         `tfsdk:"static_yaml"`
 		File               *ProjectInventoryFileModel               `tfsdk:"file"`
 		TerraformWorkspace *ProjectInventoryTerraformWorkspaceModel `tfsdk:"terraform_workspace"`
+		TofuWorkspace      *ProjectInventoryTofuWorkspaceModel      `tfsdk:"tofu_workspace"`
 	}
 
 	ProjectInventoryStaticModel struct {
@@ -45,6 +46,10 @@ type (
 	ProjectInventoryTerraformWorkspaceModel struct {
 		Workspace types.String `tfsdk:"workspace"`
 	}
+
+	ProjectInventoryTofuWorkspaceModel struct {
+		Workspace types.String `tfsdk:"workspace"`
+	}
 )
 
 const (
@@ -52,6 +57,7 @@ const (
 	ProjectInventoryStaticYaml         string = "static-yaml"
 	ProjectInventoryFile               string = "file"
 	ProjectInventoryTerraformWorkspace string = "terraform-workspace"
+	ProjectInventoryTofuWorkspace      string = "tofu-workspace"
 )
 
 func ProjectInventorySchema() superschema.Schema {
@@ -60,7 +66,7 @@ func ProjectInventorySchema() superschema.Schema {
 			MarkdownDescription: "The project inventory",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (`static`, `static_yaml`, `file` or `terraform_workspace`) can be defined per inventory.",
+			MarkdownDescription: "resource allows you to define the Ansible inventory or a Terraform/OpenTofu workspace for a project.  Only one of the inventory types (`static`, `static_yaml`, `file`, `terraform_workspace` or `tofu_workspace`) can be defined per inventory.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "data source allows you to read the Ansible inventory or a Terraform/OpenTofu workspace for a project.",
@@ -213,7 +219,6 @@ func ProjectInventorySchema() superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								// Only relative paths are allowed
 								stringvalidator.RegexMatches(
 									regexp.MustCompile(`^[^/].*$`),
 									"must be a relative path (path/to/inventory)",
@@ -262,6 +267,30 @@ func ProjectInventorySchema() superschema.Schema {
 					"workspace": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The Terraform workspace name.",
+						},
+						Resource: &schemaR.StringAttribute{
+							Required: true,
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			"tofu_workspace": superschema.SingleNestedAttribute{
+				Common: &schemaR.SingleNestedAttribute{
+					MarkdownDescription: "OpenTofu Workspace.",
+				},
+				Resource: &schemaR.SingleNestedAttribute{
+					Optional: true,
+				},
+				DataSource: &schemaD.SingleNestedAttribute{
+					Computed: true,
+				},
+				Attributes: map[string]superschema.Attribute{
+					"workspace": superschema.StringAttribute{
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "The OpenTofu workspace name.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,

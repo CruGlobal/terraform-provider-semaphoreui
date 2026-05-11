@@ -611,12 +611,24 @@ definitions:
       template_id:
         type: integer
         minimum: 1
+      auth_method:
+        type: string
+        example: none
+      auth_secret_id:
+        type: integer
+        x-nullable: true
+      auth_header:
+        type: string
+      searchable:
+        type: boolean
       task_params:
         $ref: '#/definitions/TaskPrams'
 
   IntegrationRequest:
     type: object
     properties:
+      id:
+        type: integer
       name:
         type: string
         example: deploy
@@ -624,6 +636,16 @@ definitions:
         type: integer
       template_id:
         type: integer
+      auth_method:
+        type: string
+        example: none
+      auth_secret_id:
+        type: integer
+        x-nullable: true
+      auth_header:
+        type: string
+      searchable:
+        type: boolean
       params:
         $ref: '#/definitions/TaskPrams'
 

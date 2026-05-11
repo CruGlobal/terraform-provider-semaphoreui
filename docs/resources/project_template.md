@@ -130,7 +130,6 @@ resource "semaphoreui_project_template" "deploy" {
 - `environment_id` (Number) The environment (variable group) ID that the template uses.
 - `inventory_id` (Number) The inventory ID that the template uses.
 - `name` (String) The display name of the template.
-- `playbook` (String) The playbook/script filename. Must be a relative path (path/to/inventory).
 - `project_id` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The project ID that the template belongs to.
 - `repository_id` (Number) The repository ID that the template uses.
 
@@ -143,6 +142,7 @@ resource "semaphoreui_project_template" "deploy" {
 - `deploy` (Attributes) Specifies a deploy type template used to deploy artifacts. Each `deploy` template is associated with a build template. Ensure that if an attribute is set, these are not set: "[build]". (see [below for nested schema](#nestedatt--deploy))
 - `description` (String) The description of the template.
 - `git_branch` (String) Override the git branch defined in the project repository.
+- `playbook` (String) The playbook/script filename. Optional when `app` is `terraform` or `tofu`; required otherwise. Value defaults to ``. Must be a relative path (path/to/playbook) or empty.
 - `suppress_success_alerts` (Boolean) Suppress success alerts. Value defaults to `false`.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))
 - `vaults` (Attributes List) Ansible Vault Passwords. (see [below for nested schema](#nestedatt--vaults))

@@ -136,7 +136,7 @@ func (r *projectViewResource) Update(ctx context.Context, req resource.UpdateReq
 	_, err := r.client.Project.PutProjectProjectIDViewsViewID(&project.PutProjectProjectIDViewsViewIDParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
 		ViewID:    plan.ID.ValueInt64(),
-		View: &models.View{
+		View: &models.ViewRequest{
 			ID:        plan.ID.ValueInt64(),
 			ProjectID: plan.ProjectID.ValueInt64(),
 			Title:     plan.Title.ValueString(),

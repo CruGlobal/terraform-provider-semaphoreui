@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/variable_group"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -54,7 +54,7 @@ func (d *projectEnvironmentDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	response, err := d.client.Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+	response, err := d.client.VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     config.ProjectID.ValueInt64(),
 		EnvironmentID: config.ID.ValueInt64(),
 	}, nil)

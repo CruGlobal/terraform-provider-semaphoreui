@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/inventory"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -61,6 +61,7 @@ func (r *projectInventoryResource) ConfigValidators(ctx context.Context) []resou
 			path.MatchRoot("static_yaml"),
 			path.MatchRoot("file"),
 			path.MatchRoot("terraform_workspace"),
+			path.MatchRoot("tofu_workspace"),
 		),
 	}
 }
@@ -90,6 +91,9 @@ func convertProjectInventoryModelToInventoryRequest(inventory ProjectInventoryMo
 	} else if inventory.TerraformWorkspace != nil {
 		model.Type = ProjectInventoryTerraformWorkspace
 		model.Inventory = inventory.TerraformWorkspace.Workspace.ValueString()
+	} else if inventory.TofuWorkspace != nil {
+		model.Type = ProjectInventoryTofuWorkspace
+		model.Inventory = inventory.TofuWorkspace.Workspace.ValueString()
 	}
 
 	return &model
@@ -140,6 +144,10 @@ func convertInventoryResponseToProjectInventoryModel(inventory *models.Inventory
 		model.TerraformWorkspace = &ProjectInventoryTerraformWorkspaceModel{
 			Workspace: types.StringValue(inventory.Inventory),
 		}
+	case ProjectInventoryTofuWorkspace:
+		model.TofuWorkspace = &ProjectInventoryTofuWorkspaceModel{
+			Workspace: types.StringValue(inventory.Inventory),
+		}
 	}
 	return model
 }
@@ -153,7 +161,7 @@ func (r *projectInventoryResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	response, err := r.client.Project.PostProjectProjectIDInventory(&project.PostProjectProjectIDInventoryParams{
+	response, err := r.client.Inventory.PostProjectProjectIDInventory(&inventory.PostProjectProjectIDInventoryParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
 		Inventory: convertProjectInventoryModelToInventoryRequest(plan),
 	}, nil)
@@ -184,7 +192,7 @@ func (r *projectInventoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
+	response, err := r.client.Inventory.GetProjectProjectIDInventoryInventoryID(&inventory.GetProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   state.ProjectID.ValueInt64(),
 		InventoryID: state.ID.ValueInt64(),
 	}, nil)
@@ -215,7 +223,7 @@ func (r *projectInventoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err := r.client.Project.PutProjectProjectIDInventoryInventoryID(&project.PutProjectProjectIDInventoryInventoryIDParams{
+	_, err := r.client.Inventory.PutProjectProjectIDInventoryInventoryID(&inventory.PutProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   plan.ProjectID.ValueInt64(),
 		InventoryID: plan.ID.ValueInt64(),
 		Inventory:   convertProjectInventoryModelToInventoryRequest(plan),
@@ -229,7 +237,7 @@ func (r *projectInventoryResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Fetch updated values as PutProjectProjectIDInventoryInventoryID does not return updated project inventory
-	response, err := r.client.Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
+	response, err := r.client.Inventory.GetProjectProjectIDInventoryInventoryID(&inventory.GetProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   plan.ProjectID.ValueInt64(),
 		InventoryID: plan.ID.ValueInt64(),
 	}, nil)
@@ -261,7 +269,7 @@ func (r *projectInventoryResource) Delete(ctx context.Context, req resource.Dele
 	}
 
 	// Delete existing resource
-	_, err := r.client.Project.DeleteProjectProjectIDInventoryInventoryID(&project.DeleteProjectProjectIDInventoryInventoryIDParams{
+	_, err := r.client.Inventory.DeleteProjectProjectIDInventoryInventoryID(&inventory.DeleteProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   state.ProjectID.ValueInt64(),
 		InventoryID: state.ID.ValueInt64(),
 	}, nil)
@@ -284,7 +292,7 @@ func (r *projectInventoryResource) ImportState(ctx context.Context, req resource
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
+	response, err := r.client.Inventory.GetProjectProjectIDInventoryInventoryID(&inventory.GetProjectProjectIDInventoryInventoryIDParams{
 		ProjectID:   fields["project"],
 		InventoryID: fields["inventory"],
 	}, nil)

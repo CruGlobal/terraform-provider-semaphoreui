@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/key_store"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -112,7 +112,7 @@ func convertAccessKeyResponseToProjectKeyModel(key *models.AccessKey, prev *Proj
 }
 
 func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64, keyId types.Int64, prev *ProjectKeyModel) (*ProjectKeyModel, error) {
-	payload, err := r.client.Project.GetProjectProjectIDKeys(&project.GetProjectProjectIDKeysParams{
+	payload, err := r.client.KeyStore.GetProjectProjectIDKeys(&key_store.GetProjectProjectIDKeysParams{
 		ProjectID: projectId.ValueInt64(),
 	}, nil)
 	if err != nil {
@@ -149,7 +149,7 @@ func (r *projectKeyResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	response, err := r.client.Project.PostProjectProjectIDKeys(&project.PostProjectProjectIDKeysParams{
+	response, err := r.client.KeyStore.PostProjectProjectIDKeys(&key_store.PostProjectProjectIDKeysParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
 		AccessKey: convertProjectKeyModelToAccessKeyRequest(plan),
 	}, nil)
@@ -261,7 +261,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Update existing resource
-	_, err := r.client.Project.PutProjectProjectIDKeysKeyID(&project.PutProjectProjectIDKeysKeyIDParams{
+	_, err := r.client.KeyStore.PutProjectProjectIDKeysKeyID(&key_store.PutProjectProjectIDKeysKeyIDParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
 		KeyID:     plan.ID.ValueInt64(),
 		AccessKey: key,
@@ -301,7 +301,7 @@ func (r *projectKeyResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	// Delete existing resource
-	_, err := r.client.Project.DeleteProjectProjectIDKeysKeyID(&project.DeleteProjectProjectIDKeysKeyIDParams{
+	_, err := r.client.KeyStore.DeleteProjectProjectIDKeysKeyID(&key_store.DeleteProjectProjectIDKeysKeyIDParams{
 		ProjectID: state.ProjectID.ValueInt64(),
 		KeyID:     state.ID.ValueInt64(),
 	}, nil)

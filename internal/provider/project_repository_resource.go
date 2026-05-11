@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/repository"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -82,7 +82,7 @@ func (r *projectRepositoryResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	response, err := r.client.Project.PostProjectProjectIDRepositories(&project.PostProjectProjectIDRepositoriesParams{
+	response, err := r.client.Repository.PostProjectProjectIDRepositories(&repository.PostProjectProjectIDRepositoriesParams{
 		ProjectID:  plan.ProjectID.ValueInt64(),
 		Repository: convertProjectRepositoryModelToRepositoryRequest(plan),
 	}, nil)
@@ -111,7 +111,7 @@ func (r *projectRepositoryResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDRepositoriesRepositoryID(&project.GetProjectProjectIDRepositoriesRepositoryIDParams{
+	response, err := r.client.Repository.GetProjectProjectIDRepositoriesRepositoryID(&repository.GetProjectProjectIDRepositoriesRepositoryIDParams{
 		ProjectID:    state.ProjectID.ValueInt64(),
 		RepositoryID: state.ID.ValueInt64(),
 	}, nil)
@@ -140,7 +140,7 @@ func (r *projectRepositoryResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	_, err := r.client.Project.PutProjectProjectIDRepositoriesRepositoryID(&project.PutProjectProjectIDRepositoriesRepositoryIDParams{
+	_, err := r.client.Repository.PutProjectProjectIDRepositoriesRepositoryID(&repository.PutProjectProjectIDRepositoriesRepositoryIDParams{
 		ProjectID:    plan.ProjectID.ValueInt64(),
 		RepositoryID: plan.ID.ValueInt64(),
 		Repository:   convertProjectRepositoryModelToRepositoryRequest(plan),
@@ -153,7 +153,7 @@ func (r *projectRepositoryResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDRepositoriesRepositoryID(&project.GetProjectProjectIDRepositoriesRepositoryIDParams{
+	response, err := r.client.Repository.GetProjectProjectIDRepositoriesRepositoryID(&repository.GetProjectProjectIDRepositoriesRepositoryIDParams{
 		ProjectID:    plan.ProjectID.ValueInt64(),
 		RepositoryID: plan.ID.ValueInt64(),
 	}, nil)
@@ -180,7 +180,7 @@ func (r *projectRepositoryResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	_, err := r.client.Project.DeleteProjectProjectIDRepositoriesRepositoryID(&project.DeleteProjectProjectIDRepositoriesRepositoryIDParams{
+	_, err := r.client.Repository.DeleteProjectProjectIDRepositoriesRepositoryID(&repository.DeleteProjectProjectIDRepositoriesRepositoryIDParams{
 		ProjectID:    state.ProjectID.ValueInt64(),
 		RepositoryID: state.ID.ValueInt64(),
 	}, nil)
@@ -203,7 +203,7 @@ func (r *projectRepositoryResource) ImportState(ctx context.Context, req resourc
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDRepositoriesRepositoryID(&project.GetProjectProjectIDRepositoriesRepositoryIDParams{
+	response, err := r.client.Repository.GetProjectProjectIDRepositoriesRepositoryID(&repository.GetProjectProjectIDRepositoriesRepositoryIDParams{
 		ProjectID:    fields["project"],
 		RepositoryID: fields["repository"],
 	}, nil)

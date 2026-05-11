@@ -49,7 +49,7 @@ data "semaphoreui_project_template" "build" {
 - `environment_id` (Number) The environment (variable group) ID that the template uses.
 - `git_branch` (String) Override the git branch defined in the project repository.
 - `inventory_id` (Number) The inventory ID that the template uses.
-- `playbook` (String) The playbook/script filename.
+- `playbook` (String) The playbook/script filename. Optional when `app` is `terraform` or `tofu`; required otherwise.
 - `repository_id` (Number) The repository ID that the template uses.
 - `suppress_success_alerts` (Boolean) Suppress success alerts.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))

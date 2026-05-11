@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/key_store"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -50,7 +50,7 @@ func (d *projectKeyDataSource) Schema(ctx context.Context, _ datasource.SchemaRe
 }
 
 func (d *projectKeyDataSource) GetKeyByName(projectID int64, name string) (*ProjectKeyModel, error) {
-	response, err := d.client.Project.GetProjectProjectIDKeys(&project.GetProjectProjectIDKeysParams{
+	response, err := d.client.KeyStore.GetProjectProjectIDKeys(&key_store.GetProjectProjectIDKeysParams{
 		ProjectID: projectID,
 	}, nil)
 	if err != nil {
@@ -82,7 +82,7 @@ func (d *projectKeyDataSource) GetKeyByName(projectID int64, name string) (*Proj
 }
 
 func (d *projectKeyDataSource) GetKeyByID(projectID int64, ID int64) (*ProjectKeyModel, error) {
-	response, err := d.client.Project.GetProjectProjectIDKeys(&project.GetProjectProjectIDKeysParams{
+	response, err := d.client.KeyStore.GetProjectProjectIDKeys(&key_store.GetProjectProjectIDKeysParams{
 		ProjectID: projectID,
 	}, nil)
 	if err != nil {

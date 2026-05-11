@@ -227,13 +227,20 @@ func (p *SemaphoreUIProvider) Configure(ctx context.Context, req provider.Config
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Omit the port from the host string when it matches the scheme's default.
+	// Some upstream HTTPS proxies (notably F5) reject SNI/Host headers that
+	// include :443. See issue #56.
+	host := hostname
+	if (protocol != "https" || port != "443") && (protocol != "http" || port != "80") {
+		host = fmt.Sprintf("%s:%s", hostname, port)
+	}
 	var rt *httptransport.Runtime
 	if tlsSkipVerify == "true" {
 		transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 		httpClient := &http.Client{Transport: transport}
-		rt = httptransport.NewWithClient(fmt.Sprintf("%s:%s", hostname, port), basePath, []string{protocol}, httpClient)
+		rt = httptransport.NewWithClient(host, basePath, []string{protocol}, httpClient)
 	} else {
-		rt = httptransport.New(fmt.Sprintf("%s:%s", hostname, port), basePath, []string{protocol})
+		rt = httptransport.New(host, basePath, []string{protocol})
 	}
 	rt.DefaultAuthentication = httptransport.BearerToken(apiToken)
 

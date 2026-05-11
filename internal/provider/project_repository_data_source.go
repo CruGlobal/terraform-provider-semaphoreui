@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/repository"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -49,7 +49,7 @@ func (d *projectRepositoryDataSource) Schema(ctx context.Context, _ datasource.S
 }
 
 func (d *projectRepositoryDataSource) GetRepositoryByName(projectID int64, name string) (*ProjectRepositoryModel, error) {
-	response, err := d.client.Project.GetProjectProjectIDRepositories(&project.GetProjectProjectIDRepositoriesParams{
+	response, err := d.client.Repository.GetProjectProjectIDRepositories(&repository.GetProjectProjectIDRepositoriesParams{
 		ProjectID: projectID,
 	}, nil)
 	if err != nil {
@@ -73,7 +73,7 @@ func (d *projectRepositoryDataSource) Read(ctx context.Context, req datasource.R
 
 	var model ProjectRepositoryModel
 	if !config.ID.IsUnknown() && !config.ID.IsNull() {
-		response, err := d.client.Project.GetProjectProjectIDRepositoriesRepositoryID(&project.GetProjectProjectIDRepositoriesRepositoryIDParams{
+		response, err := d.client.Repository.GetProjectProjectIDRepositoriesRepositoryID(&repository.GetProjectProjectIDRepositoriesRepositoryIDParams{
 			ProjectID:    config.ProjectID.ValueInt64(),
 			RepositoryID: config.ID.ValueInt64(),
 		}, nil)

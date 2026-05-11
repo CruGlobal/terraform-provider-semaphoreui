@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/inventory"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -49,7 +49,7 @@ func (d *projectInventoryDataSource) Schema(ctx context.Context, _ datasource.Sc
 }
 
 func (d *projectInventoryDataSource) GetInventoryByName(projectID int64, name string) (*ProjectInventoryModel, error) {
-	response, err := d.client.Project.GetProjectProjectIDInventory(&project.GetProjectProjectIDInventoryParams{
+	response, err := d.client.Inventory.GetProjectProjectIDInventory(&inventory.GetProjectProjectIDInventoryParams{
 		ProjectID: projectID,
 	}, nil)
 	if err != nil {
@@ -73,7 +73,7 @@ func (d *projectInventoryDataSource) Read(ctx context.Context, req datasource.Re
 
 	var model ProjectInventoryModel
 	if !config.ID.IsUnknown() && !config.ID.IsNull() {
-		response, err := d.client.Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
+		response, err := d.client.Inventory.GetProjectProjectIDInventoryInventoryID(&inventory.GetProjectProjectIDInventoryInventoryIDParams{
 			ProjectID:   config.ProjectID.ValueInt64(),
 			InventoryID: config.ID.ValueInt64(),
 		}, nil)

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"sort"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/variable_group"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -139,12 +139,20 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 			// Find the previous secret
 			prevSecret := prev.Secret(ctx, secret.ID)
 			if prevSecret != nil {
-				// Update if any field has changed
+				// Update if any field has changed.
+				// Note: the Semaphore API ignores type changes on update — only
+				// name/secret are persisted. The schema treats `type` as
+				// RequiresReplace on the secret list element to prevent the silent
+				// no-op.
 				if !secret.Name.Equal(prevSecret.Name) || !secret.Value.Equal(prevSecret.Value) || !secret.Type.Equal(prevSecret.Type) {
 					modelSecret.Operation = "update"
 					if !secret.Name.Equal(prevSecret.Name) {
 						modelSecret.Name = secret.Name.ValueString()
 					}
+					// The API only persists the new value when the secret field is
+					// present; omitting it leaves the previous value in place. See
+					// issue #68 / PR #74.
+					modelSecret.Secret = secret.Value.ValueString()
 				}
 			}
 		}
@@ -243,7 +251,7 @@ func (r *projectEnvironmentResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	//Create new projectEnvironment
-	response, err := r.client.Project.PostProjectProjectIDEnvironment(&project.PostProjectProjectIDEnvironmentParams{
+	response, err := r.client.VariableGroup.PostProjectProjectIDEnvironment(&variable_group.PostProjectProjectIDEnvironmentParams{
 		ProjectID:   plan.ProjectID.ValueInt64(),
 		Environment: convertProjectEnvironmentModelToEnvironmentRequest(ctx, plan, &ProjectEnvironmentModel{}),
 	}, nil)
@@ -255,7 +263,7 @@ func (r *projectEnvironmentResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	payload, err := r.client.Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+	payload, err := r.client.VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     response.Payload.ProjectID,
 		EnvironmentID: response.Payload.ID,
 	}, nil)
@@ -284,7 +292,7 @@ func (r *projectEnvironmentResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+	response, err := r.client.VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     state.ProjectID.ValueInt64(),
 		EnvironmentID: state.ID.ValueInt64(),
 	}, nil)
@@ -314,7 +322,7 @@ func (r *projectEnvironmentResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err := r.client.Project.PutProjectProjectIDEnvironmentEnvironmentID(&project.PutProjectProjectIDEnvironmentEnvironmentIDParams{
+	_, err := r.client.VariableGroup.PutProjectProjectIDEnvironmentEnvironmentID(&variable_group.PutProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     plan.ProjectID.ValueInt64(),
 		EnvironmentID: plan.ID.ValueInt64(),
 		Environment:   convertProjectEnvironmentModelToEnvironmentRequest(ctx, plan, &state),
@@ -327,7 +335,7 @@ func (r *projectEnvironmentResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+	response, err := r.client.VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     plan.ProjectID.ValueInt64(),
 		EnvironmentID: plan.ID.ValueInt64(),
 	}, nil)
@@ -355,7 +363,7 @@ func (r *projectEnvironmentResource) Delete(ctx context.Context, req resource.De
 	}
 
 	// Delete existing resource
-	_, err := r.client.Project.DeleteProjectProjectIDEnvironmentEnvironmentID(&project.DeleteProjectProjectIDEnvironmentEnvironmentIDParams{
+	_, err := r.client.VariableGroup.DeleteProjectProjectIDEnvironmentEnvironmentID(&variable_group.DeleteProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     state.ProjectID.ValueInt64(),
 		EnvironmentID: state.ID.ValueInt64(),
 	}, nil)
@@ -378,7 +386,7 @@ func (r *projectEnvironmentResource) ImportState(ctx context.Context, req resour
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+	response, err := r.client.VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 		ProjectID:     fields["project"],
 		EnvironmentID: fields["environment"],
 	}, nil)

@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"strconv"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/variable_group"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,7 +28,7 @@ func testAccProjectEnvironmentExists(resourceName string) resource.TestCheckFunc
 		id, _ := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		projectId, _ := strconv.ParseInt(rs.Primary.Attributes["project_id"], 10, 64)
 
-		response, err := testClient().Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+		response, err := testClient().VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 			ProjectID:     projectId,
 			EnvironmentID: id,
 		}, nil)
@@ -366,11 +366,13 @@ func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
 					resource.TestCheckResourceAttrSet("semaphoreui_project_environment.test", "project_id"),
 				),
 			},
-			// Update and Read testing
+			// Update and Read testing — delete one of the secrets.
+			// Note: the Semaphore API does not honor type changes on update
+			// operations, so this step keeps types stable; type change is not
+			// supported in-place by the API.
 			{
-				// Change type and delete
 				Config: testAccProjectEnvironmentConfig(nameSuffix, nil, nil, &[]testAccProjectEnvironmentSecret{
-					{Name: "NAME", Value: "BAR", Type: "env"},
+					{Name: "NAME", Value: "BAR", Type: "var"},
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccProjectEnvironmentExists("semaphoreui_project_environment.test"),
@@ -380,7 +382,7 @@ func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
 					resource.TestCheckResourceAttrSet("semaphoreui_project_environment.test", "secrets.0.id"),
 					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.name", "NAME"),
 					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.value", "BAR"),
-					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.type", "env"),
+					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.type", "var"),
 
 					resource.TestCheckNoResourceAttr("semaphoreui_project_environment.test", "variables"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_environment.test", "environment"),

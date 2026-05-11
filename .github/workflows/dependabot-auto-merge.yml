@@ -1,0 +1,80 @@
+name: dependabot-auto-merge
+
+# Auto-approves and enables auto-merge on Dependabot PRs that meet any
+# of these criteria:
+#
+#   1. Security advisories (alert-state set by fetch-metadata) —
+#      always auto-merge, regardless of version-update type.
+#   2. Regular patch or minor version bumps — auto-merge too. Required
+#      status checks on the protected branch gate actual merging on
+#      green tests, so low-risk updates flow through without a human
+#      in the loop.
+#
+# Major version bumps are explicitly left for human review — the
+# workflow never approves or enables auto-merge on them.
+#
+# "Auto-merge" is GitHub's built-in feature that waits for required
+# branch-protection / ruleset checks before merging. Without required
+# checks, GitHub falls back to an immediate merge once auto-merge is
+# enabled — so this workflow's safety relies on the repo's branch
+# protection requiring the Tests workflow (build, generate, test
+# matrix) to pass.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    # Only run on Dependabot-opened PRs; skip everything else to avoid
+    # churn and keep the job fast.
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Decide whether this PR qualifies for auto-merge. A single output
+      # keeps the subsequent conditions readable instead of duplicating
+      # the compound expression. For grouped Dependabot PRs,
+      # `update-type` reflects the highest semver bump in the group —
+      # so any group containing a major bump won't match.
+      - name: Evaluate eligibility
+        id: gate
+        env:
+          ALERT_STATE: ${{ steps.meta.outputs.alert-state }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          if [ -n "$ALERT_STATE" ] \
+             || [ "$UPDATE_TYPE" = "version-update:semver-patch" ] \
+             || [ "$UPDATE_TYPE" = "version-update:semver-minor" ]; then
+            echo "eligible=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "alert-state=$ALERT_STATE"
+          echo "update-type=$UPDATE_TYPE"
+
+      - name: Approve PR
+        if: ${{ steps.gate.outputs.eligible == 'true' }}
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # gh pr review runs as github-actions[bot], which is a different
+        # identity from dependabot[bot], so the approval satisfies any
+        # "no self-approval" ruleset requirement.
+        run: gh pr review --approve "$PR_URL"
+
+      - name: Enable squash auto-merge
+        if: ${{ steps.gate.outputs.eligible == 'true' }}
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "$PR_URL"

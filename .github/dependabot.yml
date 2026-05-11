@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # Main Go module — provider runtime.
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -14,6 +15,25 @@ updates:
         update-types:
           - minor
           - patch
+
+  # Tools module — terraform-plugin-docs and friends, used by `task generate`.
+  # Without an entry here, dependabot opens individual PRs against /tools
+  # outside the grouped pipeline (e.g. PRs #71 and #51).
+  - package-ecosystem: "gomod"
+    directory: "/tools"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(gomod-tools)"
+    labels:
+      - "dependencies"
+      - "patch"
+    groups:
+      gomod-tools-updates:
+        update-types:
+          - minor
+          - patch
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

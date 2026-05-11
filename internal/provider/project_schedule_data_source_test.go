@@ -72,7 +72,6 @@ data "semaphoreui_project_schedule" "test" {
 }
 
 func TestAcc_ProjectScheduleDataSource_basicID(t *testing.T) {
-	t.Skip("Skipped pending M3 (api-docs regen) + M4 (resource update): the template fixture this test depends on hits the SemaphoreUI v2.16+ environment_id=0 regression.")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

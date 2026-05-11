@@ -164,7 +164,6 @@ data "semaphoreui_project_template" "test" {
 }
 
 func TestAcc_ProjectTemplateDataSource_basicID(t *testing.T) {
-	t.Skip("Skipped pending M3 (api-docs regen) + M4 (resource update): SemaphoreUI v2.16+ returns environment_id=0 on GET, breaking the post-apply consistency check on the template fixture.")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -194,7 +193,6 @@ func TestAcc_ProjectTemplateDataSource_basicID(t *testing.T) {
 }
 
 func TestAcc_ProjectTemplateDataSource_basicName(t *testing.T) {
-	t.Skip("Skipped pending M3 (api-docs regen) + M4 (resource update): SemaphoreUI v2.16+ returns environment_id=0 on GET, breaking the post-apply consistency check on the template fixture.")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

@@ -45,6 +45,7 @@ data "semaphoreui_project_inventory" "example" {
 - `static` (Attributes) Static Inventory. (see [below for nested schema](#nestedatt--static))
 - `static_yaml` (Attributes) Static YAML Inventory. (see [below for nested schema](#nestedatt--static_yaml))
 - `terraform_workspace` (Attributes) Terraform Workspace. (see [below for nested schema](#nestedatt--terraform_workspace))
+- `tofu_workspace` (Attributes) OpenTofu Workspace. (see [below for nested schema](#nestedatt--tofu_workspace))
 
 <a id="nestedatt--file"></a>
 ### Nested Schema for `file`
@@ -80,3 +81,11 @@ Read-Only:
 Read-Only:
 
 - `workspace` (String) The Terraform workspace name.
+
+
+<a id="nestedatt--tofu_workspace"></a>
+### Nested Schema for `tofu_workspace`
+
+Read-Only:
+
+- `workspace` (String) The OpenTofu workspace name.

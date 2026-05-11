@@ -61,6 +61,7 @@ func (r *projectInventoryResource) ConfigValidators(ctx context.Context) []resou
 			path.MatchRoot("static_yaml"),
 			path.MatchRoot("file"),
 			path.MatchRoot("terraform_workspace"),
+			path.MatchRoot("tofu_workspace"),
 		),
 	}
 }
@@ -90,6 +91,9 @@ func convertProjectInventoryModelToInventoryRequest(inventory ProjectInventoryMo
 	} else if inventory.TerraformWorkspace != nil {
 		model.Type = ProjectInventoryTerraformWorkspace
 		model.Inventory = inventory.TerraformWorkspace.Workspace.ValueString()
+	} else if inventory.TofuWorkspace != nil {
+		model.Type = ProjectInventoryTofuWorkspace
+		model.Inventory = inventory.TofuWorkspace.Workspace.ValueString()
 	}
 
 	return &model
@@ -138,6 +142,10 @@ func convertInventoryResponseToProjectInventoryModel(inventory *models.Inventory
 		}
 	case ProjectInventoryTerraformWorkspace:
 		model.TerraformWorkspace = &ProjectInventoryTerraformWorkspaceModel{
+			Workspace: types.StringValue(inventory.Inventory),
+		}
+	case ProjectInventoryTofuWorkspace:
+		model.TofuWorkspace = &ProjectInventoryTofuWorkspaceModel{
 			Workspace: types.StringValue(inventory.Inventory),
 		}
 	}

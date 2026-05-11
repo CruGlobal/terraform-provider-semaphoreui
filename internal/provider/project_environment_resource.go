@@ -139,12 +139,20 @@ func convertProjectEnvironmentModelToEnvironmentRequest(ctx context.Context, env
 			// Find the previous secret
 			prevSecret := prev.Secret(ctx, secret.ID)
 			if prevSecret != nil {
-				// Update if any field has changed
+				// Update if any field has changed.
+				// Note: the Semaphore API ignores type changes on update — only
+				// name/secret are persisted. The schema treats `type` as
+				// RequiresReplace on the secret list element to prevent the silent
+				// no-op.
 				if !secret.Name.Equal(prevSecret.Name) || !secret.Value.Equal(prevSecret.Value) || !secret.Type.Equal(prevSecret.Type) {
 					modelSecret.Operation = "update"
 					if !secret.Name.Equal(prevSecret.Name) {
 						modelSecret.Name = secret.Name.ValueString()
 					}
+					// The API only persists the new value when the secret field is
+					// present; omitting it leaves the previous value in place. See
+					// issue #68 / PR #74.
+					modelSecret.Secret = secret.Value.ValueString()
 				}
 			}
 		}

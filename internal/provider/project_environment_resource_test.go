@@ -293,7 +293,6 @@ func TestAcc_ProjectEnvironmentResource_basicEnvironment(t *testing.T) {
 }
 
 func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
-	t.Skip("Skipped pending M4 (env secret fix from PR #74 / issue #68): SemaphoreUI v2.16+ no longer returns secret values in the GET response, causing a post-apply consistency mismatch on the secrets attribute.")
 	nameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -367,11 +366,13 @@ func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
 					resource.TestCheckResourceAttrSet("semaphoreui_project_environment.test", "project_id"),
 				),
 			},
-			// Update and Read testing
+			// Update and Read testing — delete one of the secrets.
+			// Note: the Semaphore API does not honor type changes on update
+			// operations, so this step keeps types stable; type change is not
+			// supported in-place by the API.
 			{
-				// Change type and delete
 				Config: testAccProjectEnvironmentConfig(nameSuffix, nil, nil, &[]testAccProjectEnvironmentSecret{
-					{Name: "NAME", Value: "BAR", Type: "env"},
+					{Name: "NAME", Value: "BAR", Type: "var"},
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccProjectEnvironmentExists("semaphoreui_project_environment.test"),
@@ -381,7 +382,7 @@ func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
 					resource.TestCheckResourceAttrSet("semaphoreui_project_environment.test", "secrets.0.id"),
 					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.name", "NAME"),
 					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.value", "BAR"),
-					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.type", "env"),
+					resource.TestCheckResourceAttr("semaphoreui_project_environment.test", "secrets.0.type", "var"),
 
 					resource.TestCheckNoResourceAttr("semaphoreui_project_environment.test", "variables"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_environment.test", "environment"),

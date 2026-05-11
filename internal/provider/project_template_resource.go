@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"sort"
@@ -13,9 +14,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &projectTemplateResource{}
-	_ resource.ResourceWithConfigure   = &projectTemplateResource{}
-	_ resource.ResourceWithImportState = &projectTemplateResource{}
+	_ resource.Resource                     = &projectTemplateResource{}
+	_ resource.ResourceWithConfigure        = &projectTemplateResource{}
+	_ resource.ResourceWithImportState      = &projectTemplateResource{}
+	_ resource.ResourceWithConfigValidators = &projectTemplateResource{}
 )
 
 func NewProjectTemplateResource() resource.Resource {
@@ -51,10 +53,56 @@ func (r *projectTemplateResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = ProjectTemplateSchema().GetResource(ctx)
 }
 
+// playbookRequiredValidator enforces that `playbook` is set for apps that
+// require it. SemaphoreUI accepts an empty playbook only for `terraform` and
+// `tofu` apps; for everything else (ansible, bash, powershell, python, …) the
+// API returns 400 "template playbook can not be empty". See issue #26.
+type playbookRequiredValidator struct{}
+
+func (v playbookRequiredValidator) Description(_ context.Context) string {
+	return "playbook is required unless app is `terraform` or `tofu`"
+}
+
+func (v playbookRequiredValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v playbookRequiredValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data ProjectTemplateModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !data.Playbook.IsNull() && !data.Playbook.IsUnknown() && data.Playbook.ValueString() != "" {
+		return
+	}
+	app := data.App.ValueString()
+	if data.App.IsNull() || data.App.IsUnknown() {
+		app = "ansible" // matches the schema default
+	}
+	if app == "terraform" || app == "tofu" {
+		return
+	}
+	resp.Diagnostics.AddAttributeError(
+		path.Root("playbook"),
+		"Missing playbook",
+		"playbook is required when app is not `terraform` or `tofu`. Got app="+app+".",
+	)
+}
+
+func (r *projectTemplateResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{playbookRequiredValidator{}}
+}
+
 func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template ProjectTemplateModel) *models.TemplateRequest {
+	// SemaphoreUI v2.16+ replaced the singular environment_id with an
+	// environment_ids array. The legacy environment_id is still accepted on
+	// create but is read back as 0; only environment_ids round-trips on GET.
+	envID := template.EnvironmentID.ValueInt64()
 	model := models.TemplateRequest{
 		ProjectID:               template.ProjectID.ValueInt64(),
-		EnvironmentID:           template.EnvironmentID.ValueInt64(),
+		EnvironmentID:           envID,
+		EnvironmentIds:          []int64{envID},
 		InventoryID:             template.InventoryID.ValueInt64(),
 		RepositoryID:            template.RepositoryID.ValueInt64(),
 		App:                     template.App.ValueString(),
@@ -160,10 +208,16 @@ func (a ByVaultID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByVaultID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request *models.Template, prev *ProjectTemplateModel) ProjectTemplateModel {
+	// v2.16+ stores environment in environment_ids[]; legacy environment_id
+	// reads back as 0 even when set. Prefer the array when present.
+	envID := request.EnvironmentID
+	if len(request.EnvironmentIds) > 0 {
+		envID = request.EnvironmentIds[0]
+	}
 	model := ProjectTemplateModel{
 		ID:                      types.Int64Value(request.ID),
 		ProjectID:               types.Int64Value(request.ProjectID),
-		EnvironmentID:           types.Int64Value(request.EnvironmentID),
+		EnvironmentID:           types.Int64Value(envID),
 		InventoryID:             types.Int64Value(request.InventoryID),
 		RepositoryID:            types.Int64Value(request.RepositoryID),
 		App:                     types.StringValue(request.App),

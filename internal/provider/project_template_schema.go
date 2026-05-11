@@ -216,15 +216,17 @@ func ProjectTemplateSchema() superschema.Schema {
 			},
 			"playbook": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The playbook/script filename.",
+					MarkdownDescription: "The playbook/script filename. Optional when `app` is `terraform` or `tofu`; required otherwise.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional: true,
+					Computed: true,
+					Default:  stringdefault.StaticString(""),
 					Validators: []validator.String{
 						// Only relative paths are allowed
 						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[^/].*$`),
-							"must be a relative path (path/to/inventory)",
+							regexp.MustCompile(`^([^/].*)?$`),
+							"must be a relative path (path/to/playbook) or empty",
 						),
 					},
 				},

@@ -25,6 +25,9 @@ website/node_modules
 *.test
 *.iml
 
+# Local working docs
+milestones.md
+
 website/vendor
 
 # Test exclusions

@@ -62,9 +62,9 @@ jobs:
       fail-fast: false
       matrix:
         semaphore:
-          - 'v2.12.17'
-          - 'v2.13.15'
-          - 'v2.14.12'
+          - 'v2.16.51'
+          - 'v2.17.39'
+          - 'v2.18.2'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6

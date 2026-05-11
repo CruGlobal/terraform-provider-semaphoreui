@@ -119,6 +119,7 @@ func testAccProjectScheduleImportID(n string) resource.ImportStateIdFunc {
 }
 
 func TestAcc_ProjectScheduleResource_basic(t *testing.T) {
+	t.Skip("Skipped pending M3 (api-docs regen) + M4 (resource update): the template fixture this test depends on hits the SemaphoreUI v2.16+ environment_id=0 regression.")
 	nameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

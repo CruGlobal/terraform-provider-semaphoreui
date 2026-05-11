@@ -2,7 +2,7 @@ version: '3'
 
 env:
   # Default version of the SemaphoreUI API to use
-  SEMAPHORE_VERSION: v2.14.12
+  SEMAPHORE_VERSION: v2.18.2
 
 tasks:
   build:

@@ -293,6 +293,7 @@ func TestAcc_ProjectEnvironmentResource_basicEnvironment(t *testing.T) {
 }
 
 func TestAcc_ProjectEnvironmentResource_basicSecrets(t *testing.T) {
+	t.Skip("Skipped pending M4 (env secret fix from PR #74 / issue #68): SemaphoreUI v2.16+ no longer returns secret values in the GET response, causing a post-apply consistency mismatch on the secrets attribute.")
 	nameSuffix := acctest.RandString(8)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

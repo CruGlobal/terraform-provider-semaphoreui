@@ -18,24 +18,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
       - run: go build -v .
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1
+          version: v2.12
           args: --tests=false
 
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -43,7 +43,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
-      - uses: arduino/setup-task@v2.0.0
+      - uses: arduino/setup-task@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: task generate
@@ -66,16 +66,16 @@ jobs:
           - 'v2.13.15'
           - 'v2.14.12'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: true
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.12.x'
+          terraform_version: '1.15.x'
           terraform_wrapper: false
-      - uses: arduino/setup-task@v2.0.0
+      - uses: arduino/setup-task@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: go mod download

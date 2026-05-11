@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"strconv"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/key_store"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,7 +28,7 @@ func testAccProjectKeyExists(resourceName string, keyType string) resource.TestC
 		id, _ := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		projectId, _ := strconv.ParseInt(rs.Primary.Attributes["project_id"], 10, 64)
 
-		response, err := testClient().Project.GetProjectProjectIDKeys(&project.GetProjectProjectIDKeysParams{
+		response, err := testClient().KeyStore.GetProjectProjectIDKeys(&key_store.GetProjectProjectIDKeysParams{
 			ProjectID: projectId,
 		}, nil)
 		if err != nil {

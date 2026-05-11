@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/projects"
+	"terraform-provider-semaphoreui/semaphoreui/client/project"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -78,7 +78,7 @@ func (d *projectsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequ
 func (d *projectsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state projectsDataSourceModel
 
-	response, err := d.client.Projects.GetProjects(&projects.GetProjectsParams{}, nil)
+	response, err := d.client.Project.GetProjects(&project.GetProjectsParams{}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Semaphore Projects",
@@ -99,7 +99,7 @@ func (d *projectsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			ID:               types.Int64Value(project.ID),
 			Created:          types.StringValue(project.Created),
 			Name:             types.StringValue(project.Name),
-			Alert:            types.BoolPointerValue(project.Alert),
+			Alert:            types.BoolValue(project.Alert),
 			AlertChat:        types.StringPointerValue(project.AlertChat),
 			MaxParallelTasks: maxParallelTasks,
 		})

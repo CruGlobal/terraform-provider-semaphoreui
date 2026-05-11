@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"strconv"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/variable_group"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,7 +28,7 @@ func testAccProjectEnvironmentExists(resourceName string) resource.TestCheckFunc
 		id, _ := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		projectId, _ := strconv.ParseInt(rs.Primary.Attributes["project_id"], 10, 64)
 
-		response, err := testClient().Project.GetProjectProjectIDEnvironmentEnvironmentID(&project.GetProjectProjectIDEnvironmentEnvironmentIDParams{
+		response, err := testClient().VariableGroup.GetProjectProjectIDEnvironmentEnvironmentID(&variable_group.GetProjectProjectIDEnvironmentEnvironmentIDParams{
 			ProjectID:     projectId,
 			EnvironmentID: id,
 		}, nil)

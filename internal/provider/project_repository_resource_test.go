@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"strconv"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/repository"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,7 +28,7 @@ func testAccProjectRepositoryExists(resourceName string) resource.TestCheckFunc 
 		id, _ := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		projectId, _ := strconv.ParseInt(rs.Primary.Attributes["project_id"], 10, 64)
 
-		response, err := testClient().Project.GetProjectProjectIDRepositoriesRepositoryID(&project.GetProjectProjectIDRepositoriesRepositoryIDParams{
+		response, err := testClient().Repository.GetProjectProjectIDRepositoriesRepositoryID(&repository.GetProjectProjectIDRepositoriesRepositoryIDParams{
 			ProjectID:    projectId,
 			RepositoryID: id,
 		}, nil)

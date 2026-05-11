@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"sort"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/template"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -289,7 +289,7 @@ func (r *projectTemplateResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	create, err := r.client.Project.PostProjectProjectIDTemplates(&project.PostProjectProjectIDTemplatesParams{
+	create, err := r.client.Template.PostProjectProjectIDTemplates(&template.PostProjectProjectIDTemplatesParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
 		Template:  convertProjectTemplateModelToTemplateRequest(ctx, plan),
 	}, nil)
@@ -302,7 +302,7 @@ func (r *projectTemplateResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Create response doesn't fully capture the model, so we need to read it back
-	response, err := r.client.Project.GetProjectProjectIDTemplatesTemplateID(&project.GetProjectProjectIDTemplatesTemplateIDParams{
+	response, err := r.client.Template.GetProjectProjectIDTemplatesTemplateID(&template.GetProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  plan.ProjectID.ValueInt64(),
 		TemplateID: create.Payload.ID,
 	}, nil)
@@ -331,7 +331,7 @@ func (r *projectTemplateResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDTemplatesTemplateID(&project.GetProjectProjectIDTemplatesTemplateIDParams{
+	response, err := r.client.Template.GetProjectProjectIDTemplatesTemplateID(&template.GetProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  state.ProjectID.ValueInt64(),
 		TemplateID: state.ID.ValueInt64(),
 	}, nil)
@@ -360,7 +360,7 @@ func (r *projectTemplateResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	_, err := r.client.Project.PutProjectProjectIDTemplatesTemplateID(&project.PutProjectProjectIDTemplatesTemplateIDParams{
+	_, err := r.client.Template.PutProjectProjectIDTemplatesTemplateID(&template.PutProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  plan.ProjectID.ValueInt64(),
 		TemplateID: plan.ID.ValueInt64(),
 		Template:   convertProjectTemplateModelToTemplateRequest(ctx, plan),
@@ -373,7 +373,7 @@ func (r *projectTemplateResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDTemplatesTemplateID(&project.GetProjectProjectIDTemplatesTemplateIDParams{
+	response, err := r.client.Template.GetProjectProjectIDTemplatesTemplateID(&template.GetProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  plan.ProjectID.ValueInt64(),
 		TemplateID: plan.ID.ValueInt64(),
 	}, nil)
@@ -400,7 +400,7 @@ func (r *projectTemplateResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	_, err := r.client.Project.DeleteProjectProjectIDTemplatesTemplateID(&project.DeleteProjectProjectIDTemplatesTemplateIDParams{
+	_, err := r.client.Template.DeleteProjectProjectIDTemplatesTemplateID(&template.DeleteProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  state.ProjectID.ValueInt64(),
 		TemplateID: state.ID.ValueInt64(),
 	}, nil)
@@ -423,7 +423,7 @@ func (r *projectTemplateResource) ImportState(ctx context.Context, req resource.
 		return
 	}
 
-	response, err := r.client.Project.GetProjectProjectIDTemplatesTemplateID(&project.GetProjectProjectIDTemplatesTemplateIDParams{
+	response, err := r.client.Template.GetProjectProjectIDTemplatesTemplateID(&template.GetProjectProjectIDTemplatesTemplateIDParams{
 		ProjectID:  fields["project"],
 		TemplateID: fields["template"],
 	}, nil)

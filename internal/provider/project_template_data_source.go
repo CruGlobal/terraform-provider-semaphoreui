@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/template"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -50,7 +50,7 @@ func (d *projectTemplateDataSource) Schema(ctx context.Context, _ datasource.Sch
 }
 
 func (d *projectTemplateDataSource) GetTemplateByName(projectID int64, name string) (*models.Template, error) {
-	response, err := d.client.Project.GetProjectProjectIDTemplates(&project.GetProjectProjectIDTemplatesParams{
+	response, err := d.client.Template.GetProjectProjectIDTemplates(&template.GetProjectProjectIDTemplatesParams{
 		ProjectID: projectID,
 	}, nil)
 	if err != nil {
@@ -73,7 +73,7 @@ func (d *projectTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 
 	var model ProjectTemplateModel
 	if !config.ID.IsUnknown() && !config.ID.IsNull() {
-		response, err := d.client.Project.GetProjectProjectIDTemplatesTemplateID(&project.GetProjectProjectIDTemplatesTemplateIDParams{
+		response, err := d.client.Template.GetProjectProjectIDTemplatesTemplateID(&template.GetProjectProjectIDTemplatesTemplateIDParams{
 			ProjectID:  config.ProjectID.ValueInt64(),
 			TemplateID: config.ID.ValueInt64(),
 		}, nil)

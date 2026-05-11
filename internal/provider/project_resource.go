@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
-	"terraform-provider-semaphoreui/semaphoreui/client/projects"
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
@@ -61,21 +60,13 @@ func convertProjectResponseToProjectModel(payload *models.Project) ProjectModel 
 		maxParallelTasks = types.Int64PointerValue(payload.MaxParallelTasks)
 	}
 
-	var alert types.Bool
-	if payload.Alert == nil {
-		alert = types.BoolValue(false)
-	} else {
-		alert = types.BoolPointerValue(payload.Alert)
-	}
-
 	return ProjectModel{
 		ID:               types.Int64Value(payload.ID),
 		Name:             types.StringValue(payload.Name),
-		Alert:            alert,
+		Alert:            types.BoolValue(payload.Alert),
 		AlertChat:        types.StringPointerValue(payload.AlertChat),
 		MaxParallelTasks: maxParallelTasks,
 		Created:          types.StringValue(payload.Created),
-		//Type:             projType,
 	}
 }
 
@@ -92,12 +83,12 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	var request = models.ProjectRequest{
 		Name:             plan.Name.ValueString(),
 		Alert:            plan.Alert.ValueBool(),
-		AlertChat:        plan.AlertChat.ValueString(),
+		AlertChat:        plan.AlertChat.ValueStringPointer(),
 		MaxParallelTasks: plan.MaxParallelTasks.ValueInt64Pointer(),
 	}
 
 	//Create new project
-	response, err := r.client.Projects.PostProjects(&projects.PostProjectsParams{Project: &request}, nil)
+	response, err := r.client.Project.PostProjects(&project.PostProjectsParams{Project: &request}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Semaphore Project",
@@ -159,7 +150,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	request.ID = plan.ID.ValueInt64()
 	request.Name = plan.Name.ValueString()
 	request.Alert = plan.Alert.ValueBool()
-	request.AlertChat = plan.AlertChat.ValueString()
+	request.AlertChat = plan.AlertChat.ValueStringPointer()
 	request.MaxParallelTasks = plan.MaxParallelTasks.ValueInt64Pointer()
 	//request.Type = plan.Type.ValueString()
 

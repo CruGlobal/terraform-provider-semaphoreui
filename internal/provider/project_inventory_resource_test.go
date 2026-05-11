@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"strconv"
-	"terraform-provider-semaphoreui/semaphoreui/client/project"
+	"terraform-provider-semaphoreui/semaphoreui/client/inventory"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,7 +28,7 @@ func testAccProjectInventoryExists(resourceName string, inventoryType string) re
 		id, _ := strconv.ParseInt(rs.Primary.Attributes["id"], 10, 64)
 		projectId, _ := strconv.ParseInt(rs.Primary.Attributes["project_id"], 10, 64)
 
-		response, err := testClient().Project.GetProjectProjectIDInventoryInventoryID(&project.GetProjectProjectIDInventoryInventoryIDParams{
+		response, err := testClient().Inventory.GetProjectProjectIDInventoryInventoryID(&inventory.GetProjectProjectIDInventoryInventoryIDParams{
 			ProjectID:   projectId,
 			InventoryID: id,
 		}, nil)

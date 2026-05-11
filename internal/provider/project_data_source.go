@@ -5,7 +5,6 @@ import (
 	"fmt"
 	apiclient "terraform-provider-semaphoreui/semaphoreui/client"
 	"terraform-provider-semaphoreui/semaphoreui/client/project"
-	"terraform-provider-semaphoreui/semaphoreui/client/projects"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -50,7 +49,7 @@ func (d *projectDataSource) Schema(ctx context.Context, _ datasource.SchemaReque
 }
 
 func (d *projectDataSource) GetProjectByName(name string) (*ProjectModel, error) {
-	response, err := d.client.Projects.GetProjects(&projects.GetProjectsParams{}, nil)
+	response, err := d.client.Project.GetProjects(&project.GetProjectsParams{}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not read Projects: %s", err.Error())
 	}

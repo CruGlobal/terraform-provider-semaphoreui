@@ -113,9 +113,9 @@ Optional:
 
 Optional:
 
-- `debug` (Boolean) Run Ansible with `-vvvv` debug output.
-- `diff` (Boolean) Show file diffs for changes Ansible makes (`--diff`).
-- `dry_run` (Boolean) Run Ansible in check mode (`--check`).
+- `debug` (Boolean) Run Ansible with `-vvvv` debug output. Value defaults to `false`.
+- `diff` (Boolean) Show file diffs for changes Ansible makes (`--diff`). Value defaults to `false`.
+- `dry_run` (Boolean) Run Ansible in check mode (`--check`). Value defaults to `false`.
 - `limit` (List of String) Ansible hosts to limit the run to (`--limit`).
 - `skip_tags` (List of String) Ansible tags to skip (`--skip-tags`).
 - `tags` (List of String) Ansible tags to run (`--tags`).
@@ -126,10 +126,10 @@ Optional:
 
 Optional:
 
-- `auto_approve` (Boolean) Run with `-auto-approve`.
-- `destroy` (Boolean) Run a destroy (`terraform destroy` / `tofu destroy`).
-- `plan` (Boolean) Run plan-only (no apply).
-- `upgrade` (Boolean) Pass `-upgrade` to `terraform init` / `tofu init`.
+- `auto_approve` (Boolean) Run with `-auto-approve`. Value defaults to `false`.
+- `destroy` (Boolean) Run a destroy (`terraform destroy` / `tofu destroy`). Value defaults to `false`.
+- `plan` (Boolean) Run plan-only (no apply). Value defaults to `false`.
+- `upgrade` (Boolean) Pass `-upgrade` to `terraform init` / `tofu init`. Value defaults to `false`.
 
 ## Import
 

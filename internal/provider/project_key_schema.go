@@ -24,14 +24,20 @@ type (
 	}
 
 	ProjectKeyLoginPassword struct {
-		Login    types.String `tfsdk:"login"`
-		Password types.String `tfsdk:"password"`
+		Login             types.String `tfsdk:"login"`
+		Password          types.String `tfsdk:"password"`
+		PasswordWO        types.String `tfsdk:"password_wo"`
+		PasswordWOVersion types.Int64  `tfsdk:"password_wo_version"`
 	}
 
 	ProjectKeySSH struct {
-		Login      types.String `tfsdk:"login"`
-		Passphrase types.String `tfsdk:"passphrase"`
-		PrivateKey types.String `tfsdk:"private_key"`
+		Login               types.String `tfsdk:"login"`
+		Passphrase          types.String `tfsdk:"passphrase"`
+		PassphraseWO        types.String `tfsdk:"passphrase_wo"`
+		PassphraseWOVersion types.Int64  `tfsdk:"passphrase_wo_version"`
+		PrivateKey          types.String `tfsdk:"private_key"`
+		PrivateKeyWO        types.String `tfsdk:"private_key_wo"`
+		PrivateKeyWOVersion types.Int64  `tfsdk:"private_key_wo_version"`
 	}
 
 	ProjectKeyNone struct{}
@@ -136,13 +142,34 @@ func ProjectKeySchema() superschema.Schema {
 					},
 					"password": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The login password.",
+							MarkdownDescription: "The login password. Persisted to Terraform state. Set exactly one of `password` or `password_wo`.",
 							Sensitive:           true,
 						},
 						Resource: &schemaR.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
+					},
+					"password_wo": superschema.StringAttribute{
+						Resource: &schemaR.StringAttribute{
+							MarkdownDescription: "Write-only variant of `password` — accepts ephemeral values (e.g. from `vault_kv_secret_v2`) and is never persisted to Terraform state. Mutually exclusive with `password`. Bump `password_wo_version` to push a new value to SemaphoreUI.",
+							Optional:            true,
+							Sensitive:           true,
+							WriteOnly:           true,
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+					"password_wo_version": superschema.Int64Attribute{
+						Resource: &schemaR.Int64Attribute{
+							MarkdownDescription: "Version trigger for `password_wo`. Increment to instruct the provider to re-read the write-only value and push it to SemaphoreUI. Only meaningful when `password_wo` is set.",
+							Optional:            true,
+						},
+						DataSource: &schemaD.Int64Attribute{
 							Computed: true,
 						},
 					},
@@ -172,7 +199,7 @@ func ProjectKeySchema() superschema.Schema {
 					},
 					"passphrase": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The SSH Key passphrase.",
+							MarkdownDescription: "The SSH Key passphrase. Persisted to Terraform state. Set at most one of `passphrase` or `passphrase_wo`.",
 							Sensitive:           true,
 						},
 						Resource: &schemaR.StringAttribute{
@@ -182,15 +209,57 @@ func ProjectKeySchema() superschema.Schema {
 							Computed: true,
 						},
 					},
+					"passphrase_wo": superschema.StringAttribute{
+						Resource: &schemaR.StringAttribute{
+							MarkdownDescription: "Write-only variant of `passphrase` — accepts ephemeral values and is never persisted to Terraform state. Mutually exclusive with `passphrase`. Bump `passphrase_wo_version` to push a new value to SemaphoreUI.",
+							Optional:            true,
+							Sensitive:           true,
+							WriteOnly:           true,
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+					"passphrase_wo_version": superschema.Int64Attribute{
+						Resource: &schemaR.Int64Attribute{
+							MarkdownDescription: "Version trigger for `passphrase_wo`. Increment to push a new value to SemaphoreUI.",
+							Optional:            true,
+						},
+						DataSource: &schemaD.Int64Attribute{
+							Computed: true,
+						},
+					},
 					"private_key": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The SSH private key.",
+							MarkdownDescription: "The SSH private key. Persisted to Terraform state. Set exactly one of `private_key` or `private_key_wo`.",
 							Sensitive:           true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
 						},
 						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
+					},
+					"private_key_wo": superschema.StringAttribute{
+						Resource: &schemaR.StringAttribute{
+							MarkdownDescription: "Write-only variant of `private_key` — accepts ephemeral values (e.g. from `vault_kv_secret_v2`) and is never persisted to Terraform state. Mutually exclusive with `private_key`. Bump `private_key_wo_version` to push a new value to SemaphoreUI.",
+							Optional:            true,
+							Sensitive:           true,
+							WriteOnly:           true,
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+					"private_key_wo_version": superschema.Int64Attribute{
+						Resource: &schemaR.Int64Attribute{
+							MarkdownDescription: "Version trigger for `private_key_wo`. Increment to instruct the provider to re-read the write-only value and push it to SemaphoreUI. Only meaningful when `private_key_wo` is set.",
+							Optional:            true,
+						},
+						DataSource: &schemaD.Int64Attribute{
 							Computed: true,
 						},
 					},

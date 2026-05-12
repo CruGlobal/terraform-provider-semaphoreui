@@ -50,7 +50,9 @@ data "semaphoreui_project_key" "none" {
 Read-Only:
 
 - `login` (String) The login username.
-- `password` (String, Sensitive) The login password.
+- `password` (String, Sensitive) The login password. Persisted to Terraform state. Set exactly one of `password` or `password_wo`.
+- `password_wo` (String, Sensitive) .
+- `password_wo_version` (Number) .
 
 
 <a id="nestedatt--none"></a>
@@ -63,5 +65,9 @@ Read-Only:
 Read-Only:
 
 - `login` (String) The login username.
-- `passphrase` (String, Sensitive) The SSH Key passphrase.
-- `private_key` (String, Sensitive) The SSH private key.
+- `passphrase` (String, Sensitive) The SSH Key passphrase. Persisted to Terraform state. Set at most one of `passphrase` or `passphrase_wo`.
+- `passphrase_wo` (String, Sensitive) .
+- `passphrase_wo_version` (Number) .
+- `private_key` (String, Sensitive) The SSH private key. Persisted to Terraform state. Set exactly one of `private_key` or `private_key_wo`.
+- `private_key_wo` (String, Sensitive) .
+- `private_key_wo_version` (Number) .

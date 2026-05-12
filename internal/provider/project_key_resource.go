@@ -60,10 +60,60 @@ func (r *projectKeyResource) ConfigValidators(ctx context.Context) []resource.Co
 			path.MatchRoot(ProjectKeyTypeSSH),
 			path.MatchRoot(ProjectKeyTypeNone),
 		),
+		// Within each key type, the persisted secret attribute and its
+		// write-only counterpart are mutually exclusive. The user picks one.
+		resourcevalidator.Conflicting(
+			path.MatchRoot(ProjectKeyTypeLoginPassword).AtName("password"),
+			path.MatchRoot(ProjectKeyTypeLoginPassword).AtName("password_wo"),
+		),
+		resourcevalidator.Conflicting(
+			path.MatchRoot(ProjectKeyTypeSSH).AtName("passphrase"),
+			path.MatchRoot(ProjectKeyTypeSSH).AtName("passphrase_wo"),
+		),
+		resourcevalidator.Conflicting(
+			path.MatchRoot(ProjectKeyTypeSSH).AtName("private_key"),
+			path.MatchRoot(ProjectKeyTypeSSH).AtName("private_key_wo"),
+		),
 	}
 }
 
-func convertProjectKeyModelToAccessKeyRequest(key ProjectKeyModel) *models.AccessKeyRequest {
+// resolvedSecrets holds the plaintext secret values bound for the API.
+// The values come from either the persisted attribute (e.g. `password`)
+// or its write-only counterpart (`password_wo`), whichever the user set.
+// Resolution happens once and is kept out of the Terraform model so the
+// write-only inputs never leak into state.
+type resolvedSecrets struct {
+	password   string
+	passphrase string
+	privateKey string
+}
+
+func resolveSecrets(plan, config *ProjectKeyModel) resolvedSecrets {
+	out := resolvedSecrets{}
+	if plan.LoginPassword != nil {
+		out.password = plan.LoginPassword.Password.ValueString()
+		if config.LoginPassword != nil &&
+			!config.LoginPassword.PasswordWO.IsNull() &&
+			!config.LoginPassword.PasswordWO.IsUnknown() {
+			out.password = config.LoginPassword.PasswordWO.ValueString()
+		}
+	}
+	if plan.SSH != nil {
+		out.passphrase = plan.SSH.Passphrase.ValueString()
+		out.privateKey = plan.SSH.PrivateKey.ValueString()
+		if config.SSH != nil {
+			if !config.SSH.PassphraseWO.IsNull() && !config.SSH.PassphraseWO.IsUnknown() {
+				out.passphrase = config.SSH.PassphraseWO.ValueString()
+			}
+			if !config.SSH.PrivateKeyWO.IsNull() && !config.SSH.PrivateKeyWO.IsUnknown() {
+				out.privateKey = config.SSH.PrivateKeyWO.ValueString()
+			}
+		}
+	}
+	return out
+}
+
+func convertProjectKeyModelToAccessKeyRequest(key ProjectKeyModel, secrets resolvedSecrets) *models.AccessKeyRequest {
 	model := models.AccessKeyRequest{
 		ProjectID: key.ProjectID.ValueInt64(),
 		Name:      key.Name.ValueString(),
@@ -77,14 +127,14 @@ func convertProjectKeyModelToAccessKeyRequest(key ProjectKeyModel) *models.Acces
 		model.Type = ProjectKeyTypeLoginPassword
 		model.LoginPassword = &models.AccessKeyRequestLoginPassword{
 			Login:    key.LoginPassword.Login.ValueString(),
-			Password: key.LoginPassword.Password.ValueString(),
+			Password: secrets.password,
 		}
 	} else if key.SSH != nil {
 		model.Type = ProjectKeyTypeSSH
 		model.SSH = &models.AccessKeyRequestSSH{
 			Login:      key.SSH.Login.ValueString(),
-			Passphrase: key.SSH.Passphrase.ValueString(),
-			PrivateKey: key.SSH.PrivateKey.ValueString(),
+			Passphrase: secrets.passphrase,
+			PrivateKey: secrets.privateKey,
 		}
 	}
 
@@ -141,17 +191,19 @@ func (r *projectKeyResource) getProjectKeyModelFromClient(projectId types.Int64,
 }
 
 func (r *projectKeyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	// Retrieve values from plan
-	var plan ProjectKeyModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
+	// Retrieve values from plan + config. WriteOnly attributes (*_wo) live
+	// in Config only — they're excluded from Plan and State by design.
+	var plan, config ProjectKeyModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	secrets := resolveSecrets(&plan, &config)
 
 	response, err := r.client.KeyStore.PostProjectProjectIDKeys(&key_store.PostProjectProjectIDKeysParams{
 		ProjectID: plan.ProjectID.ValueInt64(),
-		AccessKey: convertProjectKeyModelToAccessKeyRequest(plan),
+		AccessKey: convertProjectKeyModelToAccessKeyRequest(plan, secrets),
 	}, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -163,11 +215,7 @@ func (r *projectKeyResource) Create(ctx context.Context, req resource.CreateRequ
 	plan = convertAccessKeyResponseToProjectKeyModel(response.Payload, &plan)
 
 	// Set state to fully populated data
-	diags = resp.State.Set(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -199,16 +247,19 @@ func (r *projectKeyResource) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Retrieve values from plan and state
-	var plan, state ProjectKeyModel
+	// Retrieve values from plan, config, and state. WriteOnly values are in
+	// Config only — Plan and State have them as null.
+	var plan, config, state ProjectKeyModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	secrets := resolveSecrets(&plan, &config)
 
 	// Create an access key based on the plan
-	key := convertProjectKeyModelToAccessKeyRequest(plan)
+	key := convertProjectKeyModelToAccessKeyRequest(plan, secrets)
 	// Check if type of key has changed
 	if !plan.Type().Equal(state.Type()) {
 		// If key type has changed, we must update the secrets
@@ -219,6 +270,7 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 		case ProjectKeyTypeLoginPassword:
 			if !plan.LoginPassword.Login.Equal(state.LoginPassword.Login) ||
 				!plan.LoginPassword.Password.Equal(state.LoginPassword.Password) ||
+				!plan.LoginPassword.PasswordWOVersion.Equal(state.LoginPassword.PasswordWOVersion) ||
 				!plan.Name.Equal(state.Name) {
 				key.OverrideSecret = true
 			} else {
@@ -228,7 +280,9 @@ func (r *projectKeyResource) Update(ctx context.Context, req resource.UpdateRequ
 		case ProjectKeyTypeSSH:
 			if !plan.SSH.Login.Equal(state.SSH.Login) ||
 				!plan.SSH.Passphrase.Equal(state.SSH.Passphrase) ||
+				!plan.SSH.PassphraseWOVersion.Equal(state.SSH.PassphraseWOVersion) ||
 				!plan.SSH.PrivateKey.Equal(state.SSH.PrivateKey) ||
+				!plan.SSH.PrivateKeyWOVersion.Equal(state.SSH.PrivateKeyWOVersion) ||
 				!plan.Name.Equal(state.Name) {
 				key.OverrideSecret = true
 			} else {

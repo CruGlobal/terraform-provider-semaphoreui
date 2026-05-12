@@ -75,7 +75,7 @@ func TestAcc_ProjectKeyDataSource_basicName(t *testing.T) {
 				Config: testAccProjectKeyDataSourceConfigByName(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.semaphoreui_project_key.test", "name", "Password"),
-					resource.TestCheckResourceAttr("data.semaphoreui_project_key.test", "login_password.%", "2"),
+					resource.TestCheckResourceAttr("data.semaphoreui_project_key.test", "login_password.%", "4"),
 					resource.TestCheckResourceAttr("data.semaphoreui_project_key.test", "login_password.password", ""),
 					resource.TestCheckNoResourceAttr("data.semaphoreui_project_key.test", "none"),
 					resource.TestCheckNoResourceAttr("data.semaphoreui_project_key.test", "ssh"),

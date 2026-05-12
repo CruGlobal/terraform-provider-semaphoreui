@@ -175,3 +175,47 @@ func TestAcc_ProjectIntegrationResource_basic(t *testing.T) {
 		},
 	})
 }
+
+func TestAcc_ProjectIntegrationResource_taskParams(t *testing.T) {
+	nameSuffix := acctest.RandString(8)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create with task_params.ansible set.
+			{
+				Config: testAccProjectIntegrationConfig(nameSuffix, `
+  task_params = {
+    environment = "{}"
+    ansible = {
+      tags      = ["deploy"]
+      skip_tags = ["slow"]
+    }
+  }
+`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectIntegrationExists("semaphoreui_project_integration.test"),
+					resource.TestCheckResourceAttr("semaphoreui_project_integration.test", "task_params.environment", "{}"),
+					resource.TestCheckResourceAttr("semaphoreui_project_integration.test", "task_params.ansible.tags.#", "1"),
+					resource.TestCheckResourceAttr("semaphoreui_project_integration.test", "task_params.ansible.tags.0", "deploy"),
+					resource.TestCheckResourceAttr("semaphoreui_project_integration.test", "task_params.ansible.skip_tags.0", "slow"),
+				),
+			},
+			// Clear task_params.
+			{
+				Config: testAccProjectIntegrationConfig(nameSuffix, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectIntegrationExists("semaphoreui_project_integration.test"),
+					resource.TestCheckNoResourceAttr("semaphoreui_project_integration.test", "task_params"),
+				),
+			},
+			// Delete
+			{
+				Config: testAccProjectIntegrationDependencyConfig(nameSuffix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccResourceNotExists("semaphoreui_project_integration.test"),
+				),
+			},
+		},
+	})
+}

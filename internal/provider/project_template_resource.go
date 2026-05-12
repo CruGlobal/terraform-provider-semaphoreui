@@ -196,6 +196,8 @@ func convertProjectTemplateModelToTemplateRequest(ctx context.Context, template 
 		}
 	}
 
+	model.TaskParams = convertTaskParamsModelToTaskPrams(ctx, template.TaskParams)
+
 	return &model
 }
 
@@ -331,6 +333,8 @@ func convertTemplateResponseToProjectTemplateModel(ctx context.Context, request 
 		vaultsModel, _ := types.ListValueFrom(ctx, ProjectTemplateVaultType, &vaults)
 		model.Vaults = vaultsModel
 	}
+
+	model.TaskParams = convertTaskPramsToTaskParamsModel(ctx, request.TaskParams)
 
 	return model
 }

@@ -16,14 +16,15 @@ import (
 )
 
 type ProjectIntegrationModel struct {
-	ID           types.Int64  `tfsdk:"id"`
-	ProjectID    types.Int64  `tfsdk:"project_id"`
-	TemplateID   types.Int64  `tfsdk:"template_id"`
-	Name         types.String `tfsdk:"name"`
-	AuthMethod   types.String `tfsdk:"auth_method"`
-	AuthSecretID types.Int64  `tfsdk:"auth_secret_id"`
-	AuthHeader   types.String `tfsdk:"auth_header"`
-	Searchable   types.Bool   `tfsdk:"searchable"`
+	ID           types.Int64      `tfsdk:"id"`
+	ProjectID    types.Int64      `tfsdk:"project_id"`
+	TemplateID   types.Int64      `tfsdk:"template_id"`
+	Name         types.String     `tfsdk:"name"`
+	AuthMethod   types.String     `tfsdk:"auth_method"`
+	AuthSecretID types.Int64      `tfsdk:"auth_secret_id"`
+	AuthHeader   types.String     `tfsdk:"auth_header"`
+	Searchable   types.Bool       `tfsdk:"searchable"`
+	TaskParams   *TaskParamsModel `tfsdk:"task_params"`
 }
 
 func ProjectIntegrationSchema() superschema.Schema {
@@ -145,6 +146,7 @@ func ProjectIntegrationSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
+			"task_params": TaskParamsAttribute(),
 		},
 	}
 }

@@ -44,7 +44,7 @@ func (d *projectIntegrationDataSource) Schema(ctx context.Context, _ datasource.
 	resp.Schema = ProjectIntegrationSchema().GetDataSource(ctx)
 }
 
-func (d *projectIntegrationDataSource) GetIntegrationByName(projectID int64, name string) (*ProjectIntegrationModel, error) {
+func (d *projectIntegrationDataSource) GetIntegrationByName(ctx context.Context, projectID int64, name string) (*ProjectIntegrationModel, error) {
 	response, err := d.client.Integration.GetProjectProjectIDIntegrations(&integration.GetProjectProjectIDIntegrationsParams{
 		ProjectID: projectID,
 	}, nil)
@@ -53,7 +53,7 @@ func (d *projectIntegrationDataSource) GetIntegrationByName(projectID int64, nam
 	}
 	for _, integ := range response.Payload {
 		if integ.Name == name {
-			model := convertIntegrationResponseToProjectIntegrationModel(integ)
+			model := convertIntegrationResponseToProjectIntegrationModel(ctx, integ)
 			return &model, nil
 		}
 	}
@@ -80,9 +80,9 @@ func (d *projectIntegrationDataSource) Read(ctx context.Context, req datasource.
 			)
 			return
 		}
-		model = convertIntegrationResponseToProjectIntegrationModel(response.Payload)
+		model = convertIntegrationResponseToProjectIntegrationModel(ctx, response.Payload)
 	} else if !config.Name.IsUnknown() && !config.Name.IsNull() {
-		integ, err := d.GetIntegrationByName(config.ProjectID.ValueInt64(), config.Name.ValueString())
+		integ, err := d.GetIntegrationByName(ctx, config.ProjectID.ValueInt64(), config.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Reading SemaphoreUI Project Integration",

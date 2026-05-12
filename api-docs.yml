@@ -646,7 +646,7 @@ definitions:
         type: string
       searchable:
         type: boolean
-      params:
+      task_params:
         $ref: '#/definitions/TaskPrams'
 
   IntegrationExtractValueRequest:
@@ -955,6 +955,8 @@ definitions:
         type: integer
       autorun:
         type: boolean
+      task_params:
+        $ref: '#/definitions/TaskPrams'
 
   Template:
     type: object
@@ -1019,6 +1021,8 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/TemplateVault"
+      task_params:
+        $ref: '#/definitions/TaskPrams'
 
   TemplateSurveyVar:
     type: object

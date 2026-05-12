@@ -53,6 +53,7 @@ data "semaphoreui_project_template" "build" {
 - `repository_id` (Number) The repository ID that the template uses.
 - `suppress_success_alerts` (Boolean) Suppress success alerts.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))
+- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. (see [below for nested schema](#nestedatt--task_params))
 - `vaults` (Attributes List) Ansible Vault Passwords. (see [below for nested schema](#nestedatt--vaults))
 - `view_id` (Number) The view ID that the templates belongs to.
 
@@ -84,6 +85,43 @@ Read-Only:
 - `required` (Boolean) Whether the survey variable is required.
 - `title` (String) The title of the survey variable.
 - `type` (String) The type of the survey variable.
+
+
+<a id="nestedatt--task_params"></a>
+### Nested Schema for `task_params`
+
+Read-Only:
+
+- `ansible` (Attributes) Ansible-specific task parameters. Use this when `app` is `ansible`. (see [below for nested schema](#nestedatt--task_params--ansible))
+- `arguments` (String) JSON-encoded array of extra command-line arguments passed to the task runner (e.g. `"[\"-vvv\"]"`).
+- `environment` (String) JSON-encoded object of environment variables exposed to the task.
+- `git_branch` (String) Override the repository branch checked out for this task.
+- `message` (String) Optional commit-style message recorded with each task run.
+- `terraform` (Attributes) Terraform / OpenTofu-specific task parameters. Use this when `app` is `terraform` or `tofu`. (see [below for nested schema](#nestedatt--task_params--terraform))
+
+<a id="nestedatt--task_params--ansible"></a>
+### Nested Schema for `task_params.ansible`
+
+Read-Only:
+
+- `debug` (Boolean) Run Ansible with `-vvvv` debug output.
+- `diff` (Boolean) Show file diffs for changes Ansible makes (`--diff`).
+- `dry_run` (Boolean) Run Ansible in check mode (`--check`).
+- `limit` (List of String) Ansible hosts to limit the run to (`--limit`).
+- `skip_tags` (List of String) Ansible tags to skip (`--skip-tags`).
+- `tags` (List of String) Ansible tags to run (`--tags`).
+
+
+<a id="nestedatt--task_params--terraform"></a>
+### Nested Schema for `task_params.terraform`
+
+Read-Only:
+
+- `auto_approve` (Boolean) Run with `-auto-approve`.
+- `destroy` (Boolean) Run a destroy (`terraform destroy` / `tofu destroy`).
+- `plan` (Boolean) Run plan-only (no apply).
+- `upgrade` (Boolean) Pass `-upgrade` to `terraform init` / `tofu init`.
+
 
 
 <a id="nestedatt--vaults"></a>

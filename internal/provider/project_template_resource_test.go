@@ -676,3 +676,110 @@ vaults = [{
 		},
 	})
 }
+
+func TestAcc_ProjectTemplateResource_taskParams(t *testing.T) {
+	nameSuffix := acctest.RandString(8)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create with Ansible task_params — tags, skip_tags, diff.
+			{
+				Config: testAccProjectTemplateConfig(nameSuffix, `
+  task_params = {
+    arguments = "[\"-v\"]"
+    ansible = {
+      tags      = ["deploy", "db"]
+      skip_tags = ["slow"]
+      diff      = true
+    }
+  }
+`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.arguments", "[\"-v\"]"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.#", "2"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.0", "deploy"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.1", "db"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.skip_tags.#", "1"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.skip_tags.0", "slow"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.diff", "true"),
+					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params.terraform"),
+				),
+			},
+			// ImportState
+			{
+				ResourceName:      "semaphoreui_project_template.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccProjectTemplateImportID("semaphoreui_project_template.test"),
+			},
+			// Update tags (rotate).
+			{
+				Config: testAccProjectTemplateConfig(nameSuffix, `
+  task_params = {
+    ansible = {
+      tags = ["only-this"]
+    }
+  }
+`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.#", "1"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.0", "only-this"),
+					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params.ansible.skip_tags"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.diff", "false"),
+				),
+			},
+			// Clear task_params entirely.
+			{
+				Config: testAccProjectTemplateConfig(nameSuffix, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params"),
+				),
+			},
+			// Delete
+			{
+				Config: testAccProjectTemplateDependencyConfig(nameSuffix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccResourceNotExists("semaphoreui_project_template.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAcc_ProjectTemplateResource_taskParamsTerraform(t *testing.T) {
+	nameSuffix := acctest.RandString(8)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create a Terraform app template with auto_approve.
+			{
+				Config: testAccProjectTemplateConfig(nameSuffix, `
+  app = "terraform"
+  task_params = {
+    terraform = {
+      auto_approve = true
+      upgrade      = true
+    }
+  }
+`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "app", "terraform"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.terraform.auto_approve", "true"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.terraform.upgrade", "true"),
+					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params.ansible"),
+				),
+			},
+			// Delete
+			{
+				Config: testAccProjectTemplateDependencyConfig(nameSuffix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccResourceNotExists("semaphoreui_project_template.test"),
+				),
+			},
+		},
+	})
+}

@@ -44,4 +44,40 @@ data "semaphoreui_project_integration" "by_name" {
 - `auth_method` (String) How incoming requests are authenticated. Known values: `none`, `token`, `hmac`, `github`, `gitlab`, `bitbucket`. Defaults to `none`.
 - `auth_secret_id` (Number) The project key ID that holds the credential used to verify incoming requests (relevant when `auth_method` is `token` or `hmac`).
 - `searchable` (Boolean) Whether to index this integration's task history for search.
+- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. (see [below for nested schema](#nestedatt--task_params))
 - `template_id` (Number) The template ID that this integration triggers when invoked.
+
+<a id="nestedatt--task_params"></a>
+### Nested Schema for `task_params`
+
+Read-Only:
+
+- `ansible` (Attributes) Ansible-specific task parameters. Use this when `app` is `ansible`. (see [below for nested schema](#nestedatt--task_params--ansible))
+- `arguments` (String) JSON-encoded array of extra command-line arguments passed to the task runner (e.g. `"[\"-vvv\"]"`).
+- `environment` (String) JSON-encoded object of environment variables exposed to the task.
+- `git_branch` (String) Override the repository branch checked out for this task.
+- `message` (String) Optional commit-style message recorded with each task run.
+- `terraform` (Attributes) Terraform / OpenTofu-specific task parameters. Use this when `app` is `terraform` or `tofu`. (see [below for nested schema](#nestedatt--task_params--terraform))
+
+<a id="nestedatt--task_params--ansible"></a>
+### Nested Schema for `task_params.ansible`
+
+Read-Only:
+
+- `debug` (Boolean) Run Ansible with `-vvvv` debug output.
+- `diff` (Boolean) Show file diffs for changes Ansible makes (`--diff`).
+- `dry_run` (Boolean) Run Ansible in check mode (`--check`).
+- `limit` (List of String) Ansible hosts to limit the run to (`--limit`).
+- `skip_tags` (List of String) Ansible tags to skip (`--skip-tags`).
+- `tags` (List of String) Ansible tags to run (`--tags`).
+
+
+<a id="nestedatt--task_params--terraform"></a>
+### Nested Schema for `task_params.terraform`
+
+Read-Only:
+
+- `auto_approve` (Boolean) Run with `-auto-approve`.
+- `destroy` (Boolean) Run a destroy (`terraform destroy` / `tofu destroy`).
+- `plan` (Boolean) Run plan-only (no apply).
+- `upgrade` (Boolean) Pass `-upgrade` to `terraform init` / `tofu init`.

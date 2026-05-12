@@ -41,6 +41,8 @@ type (
 
 		Build  *ProjectTemplateTypeBuildModel  `tfsdk:"build"`
 		Deploy *ProjectTemplateTypeDeployModel `tfsdk:"deploy"`
+
+		TaskParams *TaskParamsModel `tfsdk:"task_params"`
 	}
 
 	ProjectTemplateTypeBuildModel struct {
@@ -562,6 +564,7 @@ func ProjectTemplateSchema() superschema.Schema {
 					},
 				},
 			},
+			"task_params": TaskParamsAttribute(),
 		},
 	}
 }

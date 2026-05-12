@@ -16,6 +16,19 @@ import (
 // swagger:model IntegrationRequest
 type IntegrationRequest struct {
 
+	// auth header
+	AuthHeader string `json:"auth_header,omitempty"`
+
+	// auth method
+	// Example: none
+	AuthMethod string `json:"auth_method,omitempty"`
+
+	// auth secret id
+	AuthSecretID *int64 `json:"auth_secret_id,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
 	// name
 	// Example: deploy
 	Name string `json:"name,omitempty"`
@@ -25,6 +38,9 @@ type IntegrationRequest struct {
 
 	// project id
 	ProjectID int64 `json:"project_id,omitempty"`
+
+	// searchable
+	Searchable bool `json:"searchable,omitempty"`
 
 	// template id
 	TemplateID int64 `json:"template_id,omitempty"`

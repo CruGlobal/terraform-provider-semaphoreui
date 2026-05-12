@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/CruGlobal/terraform-provider-semaphoreui/compare/v1.4.1...v1.5.0) (2026-05-12)
+
+
+### Features
+
+* add semaphoreui_integration_alias resource ([#83](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/83)) ([2eaa534](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/2eaa5347b8bd4d1479618b908df32e04790ed4b0))
+* add semaphoreui_project_integration resource and data source ([#80](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/80)) ([ae8b646](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/ae8b646e092e04715bff964a76a8ca8354da4b1c))
+* add task_params on project_template and project_integration (closes [#53](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/53)) ([#82](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/82)) ([b5620ab](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/b5620ab2c75818a0e3ec30082cd417cb0b5b25fe))
+* write-only attributes for project_key sensitive fields (closes [#58](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/58)) ([#84](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/84)) ([bb80fe3](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/bb80fe3885d0b0b401ec2b5878056f577d545dae))
+
 ## [1.4.1](https://github.com/CruGlobal/terraform-provider-semaphoreui/compare/v1.4.0...v1.4.1) (2025-06-04)
 
 

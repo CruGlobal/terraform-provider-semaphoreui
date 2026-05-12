@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/CruGlobal/terraform-provider-semaphoreui/compare/v1.4.1...v1.5.0) (2026-05-12)
+
+
+### Features
+
+* add `semaphoreui_integration_alias` resource for managing webhook URLs that trigger integrations ([#83](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/83)) ([2eaa534](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/2eaa5347b8bd4d1479618b908df32e04790ed4b0))
+* add `semaphoreui_project_integration` resource and data source ([#80](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/80)) ([ae8b646](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/ae8b646e092e04715bff964a76a8ca8354da4b1c))
+* add `task_params` (Ansible `tags`/`skip_tags`/`limit`/`diff`/etc. and Terraform `auto_approve`/`destroy`/`plan`/`upgrade`) on `semaphoreui_project_template` and `semaphoreui_project_integration`, closes [#53](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/53) ([#82](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/82)) ([b5620ab](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/b5620ab2c75818a0e3ec30082cd417cb0b5b25fe))
+* write-only (`*_wo`) attributes for sensitive `semaphoreui_project_key` fields (`password`, `passphrase`, `private_key`), supporting ephemeral values from Vault and other secret sources, closes [#58](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/58) ([#84](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/84)) ([bb80fe3](https://github.com/CruGlobal/terraform-provider-semaphoreui/commit/bb80fe3885d0b0b401ec2b5878056f577d545dae))
+* add `tofu_workspace` inventory type to `semaphoreui_project_inventory` for OpenTofu workspaces ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+
+
+### Bug Fixes
+
+* `semaphoreui_project_environment` secret values now persist on update — the converter was omitting the `secret` field when marking an existing secret for update, so changes were silently dropped, closes [#68](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/68) ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+* omit the default port (`:443`/`:80`) from the HTTPS Host header to support strict reverse proxies (notably F5) that reject SNI/Host containing the default port, closes [#56](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/56) ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+* `playbook` is now optional on `semaphoreui_project_template` when `app` is `terraform` or `tofu`; a config validator still requires it for other apps (Ansible, Bash, etc.), closes [#26](https://github.com/CruGlobal/terraform-provider-semaphoreui/issues/26) ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+* `semaphoreui_project_template` works correctly against SemaphoreUI v2.16+ — the API changed `environment_id` (singular) to `environment_ids` (array) and the previous client always read back `0`. The provider now writes both and reads from the array with a fallback ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+
+
+### Documentation
+
+* mark provider as AI-supported, not actively maintained, with a top-of-README status callout ([#79](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/79))
+* add [`CONTRIBUTING.md`](CONTRIBUTING.md) covering toolchain, pre-PR checks, Conventional Commits, the failing-test-first norm, and the API client regeneration workflow ([#79](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/79))
+* add `CLAUDE.md` for AI-assisted development sessions ([#79](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/79))
+
+
+### Miscellaneous
+
+* bump Go to 1.26.3 and refresh all dependencies (terraform-plugin-framework 1.15→1.19, terraform-plugin-go 0.28→0.31, terraform-plugin-testing 1.13→1.16, golangci-lint v8→v9, etc.) ([#76](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/76))
+* bump test matrix to the latest three SemaphoreUI minor lines (v2.16.51 / v2.17.39 / v2.18.2); Taskfile default is now v2.18.2 ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+* regenerate API client from upstream `api-docs.yml` at SemaphoreUI v2.18.2; internally restructures the client into per-resource sub-packages (Inventory, KeyStore, Repository, Schedule, Task, Template, VariableGroup) — no user-facing schema changes ([#78](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/78))
+* add Dependabot auto-merge workflow that auto-approves and squash-merges patch/minor/security PRs; majors still require human review ([#76](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/76))
+* bump `hashicorp/setup-terraform` from 3 to 4 ([#77](https://github.com/CruGlobal/terraform-provider-semaphoreui/pull/77))
+
 ## [1.4.1](https://github.com/CruGlobal/terraform-provider-semaphoreui/compare/v1.4.0...v1.4.1) (2025-06-04)
 
 

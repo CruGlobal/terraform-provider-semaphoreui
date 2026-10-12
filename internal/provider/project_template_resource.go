@@ -73,11 +73,19 @@ func (v playbookRequiredValidator) ValidateResource(ctx context.Context, req res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !data.Playbook.IsNull() && !data.Playbook.IsUnknown() && data.Playbook.ValueString() != "" {
+	// Unknown values are only resolved at apply time (e.g. playbook/app driven
+	// by for_each keys/values or other computed inputs). Config validation runs
+	// once with those unknown, so treating unknown as "unset" produces a false
+	// "Missing playbook" error and blocks plan/apply, not just validate. Defer
+	// instead: the concrete value is validated when it is known. See issue #86.
+	if data.Playbook.IsUnknown() || data.App.IsUnknown() {
+		return
+	}
+	if !data.Playbook.IsNull() && data.Playbook.ValueString() != "" {
 		return
 	}
 	app := data.App.ValueString()
-	if data.App.IsNull() || data.App.IsUnknown() {
+	if data.App.IsNull() {
 		app = "ansible" // matches the schema default
 	}
 	if app == "terraform" || app == "tofu" {

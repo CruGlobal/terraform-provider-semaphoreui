@@ -259,6 +259,7 @@ func (p *SemaphoreUIProvider) Resources(ctx context.Context) []func() resource.R
 		NewProjectRepositoryResource,
 		NewProjectResource,
 		NewProjectScheduleResource,
+		NewProjectTaskResource,
 		NewProjectTemplateResource,
 		NewProjectUserResource,
 		NewProjectViewResource,

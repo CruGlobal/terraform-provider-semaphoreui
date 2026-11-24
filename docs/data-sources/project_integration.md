@@ -44,7 +44,7 @@ data "semaphoreui_project_integration" "by_name" {
 - `auth_method` (String) How incoming requests are authenticated. Known values: `none`, `token`, `hmac`, `github`, `gitlab`, `bitbucket`. Defaults to `none`.
 - `auth_secret_id` (Number) The project key ID that holds the credential used to verify incoming requests (relevant when `auth_method` is `token` or `hmac`).
 - `searchable` (Boolean) Whether to index this integration's task history for search.
-- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. (see [below for nested schema](#nestedatt--task_params))
+- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. On a template, SemaphoreUI only uses `ansible.limit`, `ansible.tags`, `ansible.skip_tags` and `terraform.auto_approve`; it stores the other fields but ignores them, so `terraform.plan` does not stop an auto-approved apply. (see [below for nested schema](#nestedatt--task_params))
 - `template_id` (Number) The template ID that this integration triggers when invoked.
 
 <a id="nestedatt--task_params"></a>

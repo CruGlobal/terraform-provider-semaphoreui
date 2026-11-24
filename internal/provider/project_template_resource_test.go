@@ -1,14 +1,18 @@
 package provider
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"net/http"
 	"strconv"
 	"terraform-provider-semaphoreui/semaphoreui/client/template"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func testAccProjectTemplateExists(resourceName string, templateType string) resource.TestCheckFunc {
@@ -161,6 +165,51 @@ func testAccProjectTemplateImportID(n string) resource.ImportStateIdFunc {
 		}
 
 		return fmt.Sprintf("project/%[1]s/template/%[2]s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"]), nil
+	}
+}
+
+// testAccProjectTemplateServerTaskParam checks one key of the template's
+// task_params as SemaphoreUI stores it. The runner and the web UI read a
+// template's limit, tags, skip_tags and auto_approve from the top level of
+// task_params, so the check reads the raw API response instead of the
+// generated client, whose model is what is under test.
+func testAccProjectTemplateServerTaskParam(resourceName string, key string, want any) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		url := fmt.Sprintf("%s://%s:%s/api/project/%s/templates/%s",
+			testProtocol(), testHostname(), testPort(),
+			rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"])
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "Bearer "+testApiToken())
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("error fetching project template: %s", err.Error())
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("error fetching project template: HTTP %d", resp.StatusCode)
+		}
+
+		var tpl struct {
+			TaskParams map[string]any `json:"task_params"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&tpl); err != nil {
+			return fmt.Errorf("error decoding project template: %s", err.Error())
+		}
+
+		got, _ := json.Marshal(tpl.TaskParams[key])
+		expected, _ := json.Marshal(want)
+		if string(got) != string(expected) {
+			return fmt.Errorf("server task_params.%s = %s, want %s", key, got, expected)
+		}
+		return nil
 	}
 }
 
@@ -691,12 +740,18 @@ func TestAcc_ProjectTemplateResource_taskParams(t *testing.T) {
     ansible = {
       tags      = ["deploy", "db"]
       skip_tags = ["slow"]
+      limit     = ["web"]
       diff      = true
     }
   }
 `),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "tags", []string{"deploy", "db"}),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "skip_tags", []string{"slow"}),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "limit", []string{"web"}),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.limit.#", "1"),
+					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.limit.0", "web"),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.arguments", "[\"-v\"]"),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.#", "2"),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.0", "deploy"),
@@ -724,6 +779,9 @@ func TestAcc_ProjectTemplateResource_taskParams(t *testing.T) {
   }
 `),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "tags", []string{"only-this"}),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "skip_tags", nil),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "limit", nil),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.#", "1"),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.ansible.tags.0", "only-this"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params.ansible.skip_tags"),
@@ -768,12 +826,119 @@ func TestAcc_ProjectTemplateResource_taskParamsTerraform(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "app", "terraform"),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "auto_approve", true),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.terraform.auto_approve", "true"),
 					resource.TestCheckResourceAttr("semaphoreui_project_template.test", "task_params.terraform.upgrade", "true"),
 					resource.TestCheckNoResourceAttr("semaphoreui_project_template.test", "task_params.ansible"),
 				),
 			},
 			// Delete
+			{
+				Config: testAccProjectTemplateDependencyConfig(nameSuffix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccResourceNotExists("semaphoreui_project_template.test"),
+				),
+			},
+		},
+	})
+}
+
+// testAccProjectTemplateWriteNestedTaskParams overwrites a template's
+// task_params with the nested `params` shape that provider v1.5.0 wrote, so a
+// test can check that the next plan moves the values to the top level.
+func testAccProjectTemplateWriteNestedTaskParams(t *testing.T, projectID *string, templateID *string, nested map[string]any) func() {
+	return func() {
+		url := fmt.Sprintf("%s://%s:%s/api/project/%s/templates/%s",
+			testProtocol(), testHostname(), testPort(), *projectID, *templateID)
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Authorization", "Bearer "+testApiToken())
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			_ = resp.Body.Close()
+			t.Fatalf("error fetching project template: HTTP %d", resp.StatusCode)
+		}
+		var tpl map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&tpl)
+		_ = resp.Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		tpl["task_params"] = map[string]any{"params": nested}
+		body, err := json.Marshal(tpl)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req, err = http.NewRequest(http.MethodPut, url, bytes.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Authorization", "Bearer "+testApiToken())
+		req.Header.Set("Content-Type", "application/json")
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = resp.Body.Close()
+		if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+			t.Fatalf("error writing nested task_params: HTTP %d", resp.StatusCode)
+		}
+	}
+}
+
+func TestAcc_ProjectTemplateResource_taskParamsNestedUpgrade(t *testing.T) {
+	nameSuffix := acctest.RandString(8)
+	var projectID, templateID string
+	config := testAccProjectTemplateConfig(nameSuffix, `
+  task_params = {
+    ansible = {
+      tags  = ["users"]
+      limit = ["fivetran"]
+    }
+  }
+`)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectTemplateExists("semaphoreui_project_template.test", ""),
+					func(s *terraform.State) error {
+						rs := s.RootModule().Resources["semaphoreui_project_template.test"]
+						projectID = rs.Primary.Attributes["project_id"]
+						templateID = rs.Primary.Attributes["id"]
+						return nil
+					},
+				),
+			},
+			// A template written in the old nested shape must plan an update,
+			// and the apply must leave the values where SemaphoreUI reads them.
+			{
+				PreConfig: testAccProjectTemplateWriteNestedTaskParams(t, &projectID, &templateID, map[string]any{
+					"tags":  []string{"users"},
+					"limit": []string{"fivetran"},
+				}),
+				Config: config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("semaphoreui_project_template.test", plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "tags", []string{"users"}),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "limit", []string{"fivetran"}),
+					testAccProjectTemplateServerTaskParam("semaphoreui_project_template.test", "params", nil),
+				),
+			},
 			{
 				Config: testAccProjectTemplateDependencyConfig(nameSuffix),
 				Check: resource.ComposeAggregateTestCheckFunc(

@@ -875,6 +875,24 @@ definitions:
           - $ref: '#/definitions/AnsibleTaskParams'
           - $ref: '#/definitions/TerraformTaskParams'
 
+  # Local patch: upstream points Template.task_params at TaskPrams, but the
+  # server reads a template's task_params flat (db.AnsibleTemplateParams /
+  # db.TerraformTemplateParams), with no nested `params` object.
+  TemplateTaskParams:
+    allOf:
+      - type: object
+        properties:
+          environment:
+            type: string
+          git_branch:
+            type: string
+          message:
+            type: string
+          arguments:
+            type: string
+      - $ref: '#/definitions/AnsibleTaskParams'
+      - $ref: '#/definitions/TerraformTaskParams'
+
   TaskOutput:
     type: object
     properties:
@@ -956,7 +974,7 @@ definitions:
       autorun:
         type: boolean
       task_params:
-        $ref: '#/definitions/TaskPrams'
+        $ref: '#/definitions/TemplateTaskParams'
 
   Template:
     type: object
@@ -1022,7 +1040,7 @@ definitions:
         items:
           $ref: "#/definitions/TemplateVault"
       task_params:
-        $ref: '#/definitions/TaskPrams'
+        $ref: '#/definitions/TemplateTaskParams'
 
   TemplateSurveyVar:
     type: object

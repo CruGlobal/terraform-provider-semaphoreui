@@ -84,7 +84,7 @@ type Template struct {
 	SurveyVars []*TemplateSurveyVar `json:"survey_vars"`
 
 	// task params
-	TaskParams *TaskPrams `json:"task_params,omitempty"`
+	TaskParams *TemplateTaskParams `json:"task_params,omitempty"`
 
 	// type
 	// Enum: ["","build","deploy"]

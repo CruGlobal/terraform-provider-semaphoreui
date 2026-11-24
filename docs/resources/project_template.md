@@ -145,7 +145,7 @@ resource "semaphoreui_project_template" "deploy" {
 - `playbook` (String) The playbook/script filename. Optional when `app` is `terraform` or `tofu`; required otherwise. Value defaults to ``. Must be a relative path (path/to/playbook) or empty.
 - `suppress_success_alerts` (Boolean) Suppress success alerts. Value defaults to `false`.
 - `survey_vars` (Attributes List) Survey variables. (see [below for nested schema](#nestedatt--survey_vars))
-- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. (see [below for nested schema](#nestedatt--task_params))
+- `task_params` (Attributes) Default task parameters applied when this template or integration runs a task. On a template, SemaphoreUI only uses `ansible.limit`, `ansible.tags`, `ansible.skip_tags` and `terraform.auto_approve`; it stores the other fields but ignores them, so `terraform.plan` does not stop an auto-approved apply. (see [below for nested schema](#nestedatt--task_params))
 - `vaults` (Attributes List) Ansible Vault Passwords. (see [below for nested schema](#nestedatt--vaults))
 - `view_id` (Number) The view ID that the templates belongs to.
 

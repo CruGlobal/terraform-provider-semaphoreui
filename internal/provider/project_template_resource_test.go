@@ -860,6 +860,10 @@ func testAccProjectTemplateWriteNestedTaskParams(t *testing.T, projectID *string
 		if err != nil {
 			t.Fatal(err)
 		}
+		if resp.StatusCode != http.StatusOK {
+			_ = resp.Body.Close()
+			t.Fatalf("error fetching project template: HTTP %d", resp.StatusCode)
+		}
 		var tpl map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&tpl)
 		_ = resp.Body.Close()

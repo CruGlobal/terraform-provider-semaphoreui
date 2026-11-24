@@ -93,7 +93,11 @@ The local `api-docs.yml` is a *patched* copy of the upstream spec from a tagged 
 - `Project.alert_chat` / `ProjectRequest.alert_chat`
 - `ViewRequest.id` — upstream omits it, but the PUT views endpoint returns 400 without it
 
-When bumping `api-docs.yml`, re-import upstream verbatim first (one commit), then re-apply the nullability patches based on which tests fail (a follow-up commit). The two-commit split keeps the diff legible — reviewers can see what came from upstream versus what we patched locally.
+When bumping `api-docs.yml`, re-import upstream verbatim first (one commit), then re-apply the nullability patches and the template `task_params` patch below based on which tests fail (a follow-up commit). The two-commit split keeps the diff legible — reviewers can see what came from upstream versus what we patched locally.
+
+### Template `task_params` shape patch
+
+Upstream's spec points `Template.task_params` and `TemplateRequest.task_params` at `TaskPrams`, which nests the app params under `params`. That shape is right for integrations, but the server reads a template's `task_params` flat (`db.AnsibleTemplateParams` / `db.TerraformTemplateParams`), and values written under `params` are stored but ignored. The local `TemplateTaskParams` definition is the flat shape. Templates convert through `convertTaskParamsModelToTemplateTaskParams` / `convertTemplateTaskParamsToTaskParamsModel`; integrations keep the `TaskPrams` converters. `testAccProjectTemplateServerTaskParam` reads the raw API response so the tests catch a regression the generated client would hide.
 
 ### Template `environment_id` quirk
 

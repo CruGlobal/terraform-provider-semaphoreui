@@ -255,8 +255,9 @@ func TaskParamsAttribute() superschema.Attribute {
 }
 
 // convertTaskParamsModelToTaskPrams converts a Terraform model into the
-// generated client's TaskPrams. Returns nil if the model is unset, so callers
-// can omit task_params from requests cleanly.
+// generated client's TaskPrams, the shape integrations use (app params nested
+// under `params`). Returns nil if the model is unset, so callers can omit
+// task_params from requests cleanly.
 func convertTaskParamsModelToTaskPrams(ctx context.Context, model *TaskParamsModel) *models.TaskPrams {
 	if model == nil {
 		return nil
@@ -267,24 +268,8 @@ func convertTaskParamsModelToTaskPrams(ctx context.Context, model *TaskParamsMod
 		GitBranch:   model.GitBranch.ValueString(),
 		Message:     model.Message.ValueString(),
 	}
-	if model.Ansible != nil {
-		out.Params.AnsibleTaskParams = models.AnsibleTaskParams{
-			Tags:     stringListToSlice(ctx, model.Ansible.Tags),
-			SkipTags: stringListToSlice(ctx, model.Ansible.SkipTags),
-			Limit:    stringListToSlice(ctx, model.Ansible.Limit),
-			Debug:    model.Ansible.Debug.ValueBool(),
-			Diff:     model.Ansible.Diff.ValueBool(),
-			DryRun:   model.Ansible.DryRun.ValueBool(),
-		}
-	}
-	if model.Terraform != nil {
-		out.Params.TerraformTaskParams = models.TerraformTaskParams{
-			AutoApprove: model.Terraform.AutoApprove.ValueBool(),
-			Destroy:     model.Terraform.Destroy.ValueBool(),
-			Plan:        model.Terraform.Plan.ValueBool(),
-			Upgrade:     model.Terraform.Upgrade.ValueBool(),
-		}
-	}
+	out.Params.AnsibleTaskParams = ansibleTaskParamsFromModel(ctx, model.Ansible)
+	out.Params.TerraformTaskParams = terraformTaskParamsFromModel(model.Terraform)
 	return out
 }
 
@@ -300,31 +285,104 @@ func convertTaskPramsToTaskParamsModel(ctx context.Context, in *models.TaskPrams
 	if in == nil {
 		return nil
 	}
-	out := &TaskParamsModel{
+	return &TaskParamsModel{
 		Arguments:   stringOrNull(in.Arguments),
 		Environment: stringOrNull(in.Environment),
 		GitBranch:   stringOrNull(in.GitBranch),
 		Message:     stringOrNull(in.Message),
+		Ansible:     ansibleTaskParamsToModel(ctx, in.Params.AnsibleTaskParams),
+		Terraform:   terraformTaskParamsToModel(in.Params.TerraformTaskParams),
 	}
-	if !ansibleTaskParamsEmpty(in.Params.AnsibleTaskParams) {
-		out.Ansible = &AnsibleTaskParamsModel{
-			Tags:     sliceToStringList(ctx, in.Params.Tags),
-			SkipTags: sliceToStringList(ctx, in.Params.SkipTags),
-			Limit:    sliceToStringList(ctx, in.Params.Limit),
-			Debug:    types.BoolValue(in.Params.Debug),
-			Diff:     types.BoolValue(in.Params.Diff),
-			DryRun:   types.BoolValue(in.Params.DryRun),
-		}
+}
+
+// convertTaskParamsModelToTemplateTaskParams converts a Terraform model into
+// the generated client's TemplateTaskParams. SemaphoreUI reads a template's
+// task_params flat (limit/tags/skip_tags/auto_approve at the top level), unlike
+// the nested TaskPrams shape integrations use. Returns nil if the model is
+// unset.
+func convertTaskParamsModelToTemplateTaskParams(ctx context.Context, model *TaskParamsModel) *models.TemplateTaskParams {
+	if model == nil {
+		return nil
 	}
-	if !terraformTaskParamsEmpty(in.Params.TerraformTaskParams) {
-		out.Terraform = &TerraformTaskParamsModel{
-			AutoApprove: types.BoolValue(in.Params.AutoApprove),
-			Destroy:     types.BoolValue(in.Params.Destroy),
-			Plan:        types.BoolValue(in.Params.Plan),
-			Upgrade:     types.BoolValue(in.Params.Upgrade),
-		}
+	return &models.TemplateTaskParams{
+		Arguments:           model.Arguments.ValueString(),
+		Environment:         model.Environment.ValueString(),
+		GitBranch:           model.GitBranch.ValueString(),
+		Message:             model.Message.ValueString(),
+		AnsibleTaskParams:   ansibleTaskParamsFromModel(ctx, model.Ansible),
+		TerraformTaskParams: terraformTaskParamsFromModel(model.Terraform),
 	}
-	return out
+}
+
+// convertTemplateTaskParamsToTaskParamsModel converts a template's flat
+// task_params back into the Terraform model shape. Returns nil if the input
+// is nil. Values an older provider wrote under a nested `params` key are not
+// read, so the next plan shows them as a change and the apply rewrites them
+// where SemaphoreUI looks.
+func convertTemplateTaskParamsToTaskParamsModel(ctx context.Context, in *models.TemplateTaskParams) *TaskParamsModel {
+	if in == nil {
+		return nil
+	}
+	return &TaskParamsModel{
+		Arguments:   stringOrNull(in.Arguments),
+		Environment: stringOrNull(in.Environment),
+		GitBranch:   stringOrNull(in.GitBranch),
+		Message:     stringOrNull(in.Message),
+		Ansible:     ansibleTaskParamsToModel(ctx, in.AnsibleTaskParams),
+		Terraform:   terraformTaskParamsToModel(in.TerraformTaskParams),
+	}
+}
+
+func ansibleTaskParamsFromModel(ctx context.Context, m *AnsibleTaskParamsModel) models.AnsibleTaskParams {
+	if m == nil {
+		return models.AnsibleTaskParams{}
+	}
+	return models.AnsibleTaskParams{
+		Tags:     stringListToSlice(ctx, m.Tags),
+		SkipTags: stringListToSlice(ctx, m.SkipTags),
+		Limit:    stringListToSlice(ctx, m.Limit),
+		Debug:    m.Debug.ValueBool(),
+		Diff:     m.Diff.ValueBool(),
+		DryRun:   m.DryRun.ValueBool(),
+	}
+}
+
+func terraformTaskParamsFromModel(m *TerraformTaskParamsModel) models.TerraformTaskParams {
+	if m == nil {
+		return models.TerraformTaskParams{}
+	}
+	return models.TerraformTaskParams{
+		AutoApprove: m.AutoApprove.ValueBool(),
+		Destroy:     m.Destroy.ValueBool(),
+		Plan:        m.Plan.ValueBool(),
+		Upgrade:     m.Upgrade.ValueBool(),
+	}
+}
+
+func ansibleTaskParamsToModel(ctx context.Context, p models.AnsibleTaskParams) *AnsibleTaskParamsModel {
+	if ansibleTaskParamsEmpty(p) {
+		return nil
+	}
+	return &AnsibleTaskParamsModel{
+		Tags:     sliceToStringList(ctx, p.Tags),
+		SkipTags: sliceToStringList(ctx, p.SkipTags),
+		Limit:    sliceToStringList(ctx, p.Limit),
+		Debug:    types.BoolValue(p.Debug),
+		Diff:     types.BoolValue(p.Diff),
+		DryRun:   types.BoolValue(p.DryRun),
+	}
+}
+
+func terraformTaskParamsToModel(p models.TerraformTaskParams) *TerraformTaskParamsModel {
+	if terraformTaskParamsEmpty(p) {
+		return nil
+	}
+	return &TerraformTaskParamsModel{
+		AutoApprove: types.BoolValue(p.AutoApprove),
+		Destroy:     types.BoolValue(p.Destroy),
+		Plan:        types.BoolValue(p.Plan),
+		Upgrade:     types.BoolValue(p.Upgrade),
+	}
 }
 
 func ansibleTaskParamsEmpty(p models.AnsibleTaskParams) bool {

@@ -12,8 +12,9 @@ import (
 	"terraform-provider-semaphoreui/semaphoreui/models"
 )
 
-// TaskParamsModel mirrors the SemaphoreUI TaskPrams JSON object. Used by
-// both project templates and project integrations.
+// TaskParamsModel is the Terraform shape of task_params, shared by project
+// templates and project integrations. Templates send it flat
+// (TemplateTaskParams); integrations send it nested (TaskPrams).
 type TaskParamsModel struct {
 	Arguments   types.String              `tfsdk:"arguments"`
 	Environment types.String              `tfsdk:"environment"`
@@ -44,7 +45,7 @@ type TerraformTaskParamsModel struct {
 func TaskParamsAttribute() superschema.Attribute {
 	return superschema.SingleNestedAttribute{
 		Common: &schemaR.SingleNestedAttribute{
-			MarkdownDescription: "Default task parameters applied when this template or integration runs a task.",
+			MarkdownDescription: "Default task parameters applied when this template or integration runs a task. On a template, SemaphoreUI only uses `ansible.limit`, `ansible.tags`, `ansible.skip_tags` and `terraform.auto_approve`; it stores the other fields but ignores them, so `terraform.plan` does not stop an auto-approved apply.",
 		},
 		Resource: &schemaR.SingleNestedAttribute{
 			Optional: true,
